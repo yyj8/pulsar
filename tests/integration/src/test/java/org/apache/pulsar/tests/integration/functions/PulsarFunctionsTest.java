@@ -73,6 +73,7 @@ import org.apache.pulsar.functions.api.examples.MergeTopicFunction;
 import org.apache.pulsar.functions.api.examples.pojo.AvroTestObject;
 import org.apache.pulsar.functions.api.examples.pojo.Users;
 import org.apache.pulsar.functions.api.examples.serde.CustomObject;
+import org.apache.pulsar.functions.instance.InstanceUtils;
 import org.apache.pulsar.tests.integration.docker.ContainerExecException;
 import org.apache.pulsar.tests.integration.docker.ContainerExecResult;
 import org.apache.pulsar.tests.integration.functions.utils.CommandGenerator;
@@ -852,7 +853,7 @@ public abstract class PulsarFunctionsTest extends PulsarFunctionsTestBase {
 
         if (StringUtils.isNotEmpty(inputTopicName)) {
             ensureSubscriptionCreated(
-                    inputTopicName, String.format("public/default/%s", functionName), inputTopicSchema);
+                    inputTopicName, InstanceUtils.getDefaultSubscriptionName("public","default", functionName), inputTopicSchema);
         }
     }
 
@@ -1516,7 +1517,7 @@ public abstract class PulsarFunctionsTest extends PulsarFunctionsTestBase {
                 commands);
         assertTrue(result.getStdout().contains("\"Created successfully\""));
 
-        ensureSubscriptionCreated(inputTopicName, String.format("public/default/%s", functionName), schema);
+        ensureSubscriptionCreated(inputTopicName, InstanceUtils.getDefaultSubscriptionName("public","default", functionName), schema);
     }
 
     private void publishAndConsumeMessages(String inputTopic,
