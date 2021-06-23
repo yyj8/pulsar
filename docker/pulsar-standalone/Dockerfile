@@ -36,7 +36,6 @@ RUN apt-get update \
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 RUN update-ca-certificates
-RUN ln -s /usr/bin/pip3 /usr/bin/pip
 
 # Postgres configuration
 COPY --from=dashboard /etc/postgresql/11/main/postgresql.conf /etc/postgresql/11/main/postgresql.conf
