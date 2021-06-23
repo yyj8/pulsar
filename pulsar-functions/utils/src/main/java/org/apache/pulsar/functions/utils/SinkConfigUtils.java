@@ -155,6 +155,8 @@ public class SinkConfigUtils {
         }
         if (isNotBlank(sinkConfig.getSourceSubscriptionName())) {
             sourceSpecBuilder.setSubscriptionName(sinkConfig.getSourceSubscriptionName());
+        }  else if (FunctionConfigUtils.DS_PATCH_FUNCTION_NAME_AS_SUBSCRIPTION_NAME) {
+            sourceSpecBuilder.setSubscriptionName(sinkConfig.getName());
         }
 
         Function.SubscriptionType subType = ((sinkConfig.getRetainOrdering() != null && sinkConfig.getRetainOrdering())
@@ -271,6 +273,8 @@ public class SinkConfigUtils {
         sinkConfig.setInputSpecs(consumerConfigMap);
         if (!isEmpty(functionDetails.getSource().getSubscriptionName())) {
             sinkConfig.setSourceSubscriptionName(functionDetails.getSource().getSubscriptionName());
+        } else if (FunctionConfigUtils.DS_PATCH_FUNCTION_NAME_AS_SUBSCRIPTION_NAME) {
+            sinkConfig.setSourceSubscriptionName(functionDetails.getName());
         }
         if (functionDetails.getSource().getSubscriptionType() == Function.SubscriptionType.FAILOVER) {
             sinkConfig.setRetainOrdering(true);
