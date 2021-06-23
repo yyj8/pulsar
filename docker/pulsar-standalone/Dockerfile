@@ -38,7 +38,7 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 RUN update-ca-certificates
 
 # Postgres configuration
-COPY --from=dashboard /etc/postgresql/11/main/postgresql.conf /etc/postgresql/11/main/postgresql.conf
+COPY --from=dashboard /etc/postgresql/11/main/postgresql.conf /etc/postgresql/12/main/postgresql.conf
 
 # Configure supervisor
 COPY --from=dashboard /etc/supervisor/conf.d/supervisor-app.conf /etc/supervisor/conf.d/supervisor-app.conf
