@@ -72,47 +72,54 @@ public class PulsarIODebeziumSourceRunner extends PulsarIOSourceRunner {
         // get source info
         getSourceInfoSuccess(sourceTester, tenant, namespace, sourceName);
 
-        // get source status
-        Failsafe.with(statusRetryPolicy).run(() -> getSourceStatus(tenant, namespace, sourceName));
+        try
+        {
 
-        // wait for source to process messages
-        Failsafe.with(statusRetryPolicy).run(() ->
-                waitForProcessingSourceMessages(tenant, namespace, sourceName, numMessages));
+            // get source status
+            Failsafe.with(statusRetryPolicy).run(() -> getSourceStatus(tenant, namespace, sourceName));
 
-        @Cleanup
-        Consumer consumer = client.newConsumer(getSchema(jsonWithEnvelope))
-                .topic(consumeTopicName)
-                .subscriptionName("debezium-source-tester")
-                .subscriptionType(SubscriptionType.Exclusive)
-                .subscriptionInitialPosition(SubscriptionInitialPosition.Earliest)
-                .subscribe();
-        log.info("[debezium mysql test] create consumer finish. converterName: {}", converterClassName);
+            // wait for source to process messages
+            Failsafe.with(statusRetryPolicy).run(() ->
+                    waitForProcessingSourceMessages(tenant, namespace, sourceName, numMessages));
 
-        // validate the source result
-        sourceTester.validateSourceResult(consumer, 9, null, converterClassName);
+            @Cleanup
+            Consumer consumer = client.newConsumer(getSchema(jsonWithEnvelope))
+                    .topic(consumeTopicName)
+                    .subscriptionName("debezium-source-tester")
+                    .subscriptionType(SubscriptionType.Exclusive)
+                    .subscriptionInitialPosition(SubscriptionInitialPosition.Earliest)
+                    .subscribe();
+            log.info("[debezium mysql test] create consumer finish. converterName: {}", converterClassName);
 
-        final int numEntriesToInsert = sourceTester.getNumEntriesToInsert();
-        Preconditions.checkArgument(numEntriesToInsert >= 1);
+            // validate the source result
+            sourceTester.validateSourceResult(consumer, 9, null, converterClassName);
 
-        for (int i = 1; i <= numEntriesToInsert; i++) {
-            // prepare insert event
-            sourceTester.prepareInsertEvent();
-            log.info("inserted entry {} of {}", i, numEntriesToInsert);
-            // validate the source insert event
-            sourceTester.validateSourceResult(consumer, 1, SourceTester.INSERT, converterClassName);
+            final int numEntriesToInsert = sourceTester.getNumEntriesToInsert();
+            Preconditions.checkArgument(numEntriesToInsert >= 1);
+
+            for (int i = 1; i <= numEntriesToInsert; i++)
+            {
+                // prepare insert event
+                sourceTester.prepareInsertEvent();
+                log.info("inserted entry {} of {}", i, numEntriesToInsert);
+                // validate the source insert event
+                sourceTester.validateSourceResult(consumer, 1, SourceTester.INSERT, converterClassName);
+            }
+
+            // prepare update event
+            sourceTester.prepareUpdateEvent();
+
+            // validate the source update event
+            sourceTester.validateSourceResult(consumer, numEntriesToInsert, SourceTester.UPDATE, converterClassName);
+
+            // prepare delete event
+            sourceTester.prepareDeleteEvent();
+
+            // validate the source delete event
+            sourceTester.validateSourceResult(consumer, numEntriesToInsert, SourceTester.DELETE, converterClassName);
+        } finally {
+            pulsarCluster.dumpFunctionLogs(sourceName);
         }
-
-        // prepare update event
-        sourceTester.prepareUpdateEvent();
-
-        // validate the source update event
-        sourceTester.validateSourceResult(consumer, numEntriesToInsert, SourceTester.UPDATE, converterClassName);
-
-        // prepare delete event
-        sourceTester.prepareDeleteEvent();
-
-        // validate the source delete event
-        sourceTester.validateSourceResult(consumer,  numEntriesToInsert, SourceTester.DELETE, converterClassName);
 
         // delete the source
         deleteSource(tenant, namespace, sourceName);

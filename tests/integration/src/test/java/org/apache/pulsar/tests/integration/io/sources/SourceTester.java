@@ -58,6 +58,7 @@ public abstract class SourceTester<ServiceContainerT extends GenericContainer> {
         add("source");
         add("op");
         add("ts_ms");
+        add("transaction");
     }};
 
     protected SourceTester(String sourceType) {
@@ -145,7 +146,8 @@ public abstract class SourceTester<ServiceContainerT extends GenericContainer> {
             Assert.assertNotNull(valueRecord.getFields());
             Assert.assertTrue(valueRecord.getFields().size() > 0);
             for (Field field : valueRecord.getFields()) {
-                Assert.assertTrue(DEBEZIUM_FIELD_SET.contains(field.getName()));
+                log.info("field {} expected {}", field, DEBEZIUM_FIELD_SET);
+                Assert.assertTrue(DEBEZIUM_FIELD_SET.contains(field.getName()), "unexpected field "+field.getName()+" only "+DEBEZIUM_FIELD_SET);
             }
 
             if (eventType != null) {
