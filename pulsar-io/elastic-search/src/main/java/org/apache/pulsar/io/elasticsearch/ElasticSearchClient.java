@@ -273,8 +273,9 @@ public class ElasticSearchClient {
                 indexRequest.id(idAndDoc.getLeft());
             indexRequest.type(config.getTypeName());
             indexRequest.source(idAndDoc.getRight(), XContentType.JSON);
+            log.info("calling index...");
             IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
-            log.debug("index id={} result={}", idAndDoc.getLeft(), indexResponse.getResult());
+            log.info("index id={} result={}", idAndDoc.getLeft(), indexResponse.getResult());
             if (indexResponse.getResult().equals(DocWriteResponse.Result.CREATED) ||
                     indexResponse.getResult().equals(DocWriteResponse.Result.UPDATED)) {
                 record.ack();
@@ -284,7 +285,7 @@ public class ElasticSearchClient {
                 return false;
             }
         } catch (final Exception ex) {
-            log.debug("index failed id=" + idAndDoc.getLeft(), ex);
+            log.info("index failed id=" + idAndDoc.getLeft(), ex);
             record.fail();
             throw ex;
         }

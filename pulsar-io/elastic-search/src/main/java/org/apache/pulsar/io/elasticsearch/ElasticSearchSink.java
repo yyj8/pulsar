@@ -83,6 +83,7 @@ public class ElasticSearchSink implements Sink<GenericObject> {
         if (!elasticsearchClient.isFailed()) {
             try {
                 Pair<String, String> idAndDoc = extractIdAndDocument(record);
+                log.info("processing {} {}", idAndDoc.getLeft(), idAndDoc.getRight());
                 if (idAndDoc.getRight() == null) {
                     switch (elasticSearchConfig.getNullValueAction()) {
                         case DELETE:

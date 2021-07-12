@@ -51,73 +51,78 @@ import net.jodah.failsafe.Failsafe;
 @Slf4j
 public class PulsarIOSinkRunner extends PulsarIOTestRunner {
 
-	public PulsarIOSinkRunner(PulsarCluster cluster, String functionRuntimeType) {
-		super(cluster, functionRuntimeType);
-	}
+    public PulsarIOSinkRunner(PulsarCluster cluster, String functionRuntimeType) {
+        super(cluster, functionRuntimeType);
+    }
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public <T extends GenericContainer> void runSinkTester(SinkTester<T> tester, boolean builtin) throws Exception {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public <T extends GenericContainer> void runSinkTester(SinkTester<T> tester, boolean builtin) throws Exception {
         final String tenant = TopicName.PUBLIC_TENANT;
         final String namespace = TopicName.DEFAULT_NAMESPACE;
         final String inputTopicName = "test-sink-connector-"
-            + tester.getSinkType() + "-" + functionRuntimeType + "-input-topic-" + PulsarTestBase.randomName(8);
+                + tester.getSinkType() + "-" + functionRuntimeType + "-input-topic-" + PulsarTestBase.randomName(8);
         final String sinkName = "test-sink-connector-"
-            + tester.getSinkType().name().toLowerCase() + "-" + functionRuntimeType + "-name-" + PulsarTestBase.randomName(8);
+                + tester.getSinkType().name().toLowerCase() + "-" + functionRuntimeType + "-name-" + PulsarTestBase.randomName(8);
         final int numMessages = 20;
 
         // prepare the testing environment for sink
         prepareSink(tester);
 
         ensureSubscriptionCreated(
-            inputTopicName,
-            String.format("public/default/%s", sinkName),
-            tester.getInputTopicSchema());
+                inputTopicName,
+                String.format("public/default/%s", sinkName),
+                tester.getInputTopicSchema());
 
         // submit the sink connector
         submitSinkConnector(tester, tenant, namespace, sinkName, inputTopicName);
 
         // get sink info
         getSinkInfoSuccess(tester, tenant, namespace, sinkName, builtin);
+        try {
 
-        // get sink status
-        Failsafe.with(statusRetryPolicy).run(() -> getSinkStatus(tenant, namespace, sinkName));
+            // get sink status
+            Failsafe.with(statusRetryPolicy).run(() -> getSinkStatus(tenant, namespace, sinkName));
 
-        // produce messages
-        Map<String, String> kvs;
-        if (tester instanceof JdbcPostgresSinkTester) {
-            kvs = produceSchemaInsertMessagesToInputTopic(inputTopicName, numMessages, AvroSchema.of(JdbcPostgresSinkTester.Foo.class));
-            // wait for sink to process messages
-            Failsafe.with(statusRetryPolicy).run(() ->
-                    waitForProcessingSinkMessages(tenant, namespace, sinkName, numMessages));
+            // produce messages
+            Map<String, String> kvs;
+            if (tester instanceof JdbcPostgresSinkTester) {
+                kvs = produceSchemaInsertMessagesToInputTopic(inputTopicName, numMessages, AvroSchema.of(JdbcPostgresSinkTester.Foo.class));
+                // wait for sink to process messages
+                Failsafe.with(statusRetryPolicy).run(() ->
+                        waitForProcessingSinkMessages(tenant, namespace, sinkName, numMessages));
 
-            // validate the sink result
-            tester.validateSinkResult(kvs);
+                // validate the sink result
+                tester.validateSinkResult(kvs);
 
-            kvs = produceSchemaUpdateMessagesToInputTopic(inputTopicName, numMessages, AvroSchema.of(JdbcPostgresSinkTester.Foo.class));
+                kvs = produceSchemaUpdateMessagesToInputTopic(inputTopicName, numMessages, AvroSchema.of(JdbcPostgresSinkTester.Foo.class));
 
-            // wait for sink to process messages
-            Failsafe.with(statusRetryPolicy).run(() ->
-                    waitForProcessingSinkMessages(tenant, namespace, sinkName, numMessages + 20));
+                // wait for sink to process messages
+                Failsafe.with(statusRetryPolicy).run(() ->
+                        waitForProcessingSinkMessages(tenant, namespace, sinkName, numMessages + 20));
 
-            // validate the sink result
-            tester.validateSinkResult(kvs);
+                // validate the sink result
+                tester.validateSinkResult(kvs);
 
-            kvs = produceSchemaDeleteMessagesToInputTopic(inputTopicName, numMessages, AvroSchema.of(JdbcPostgresSinkTester.Foo.class));
+                kvs = produceSchemaDeleteMessagesToInputTopic(inputTopicName, numMessages, AvroSchema.of(JdbcPostgresSinkTester.Foo.class));
 
-            // wait for sink to process messages
-            Failsafe.with(statusRetryPolicy).run(() ->
-                    waitForProcessingSinkMessages(tenant, namespace, sinkName, numMessages + 20 + 20));
+                // wait for sink to process messages
+                Failsafe.with(statusRetryPolicy).run(() ->
+                        waitForProcessingSinkMessages(tenant, namespace, sinkName, numMessages + 20 + 20));
 
-            // validate the sink result
-            tester.validateSinkResult(kvs);
+                // validate the sink result
+                tester.validateSinkResult(kvs);
 
-        } else {
-            kvs = produceMessagesToInputTopic(inputTopicName, numMessages);
-            // wait for sink to process messages
-            Failsafe.with(statusRetryPolicy).run(() ->
-                    waitForProcessingSinkMessages(tenant, namespace, sinkName, numMessages));
-            // validate the sink result
-            tester.validateSinkResult(kvs);
+            } else {
+                kvs = produceMessagesToInputTopic(inputTopicName, numMessages, tester);
+                // wait for sink to process messages
+                Failsafe.with(statusRetryPolicy).run(() ->
+                        waitForProcessingSinkMessages(tenant, namespace, sinkName, numMessages));
+                // validate the sink result
+                tester.validateSinkResult(kvs);
+            }
+        } finally {
+            // always print the content of the logs, in order to ease debugging
+            pulsarCluster.dumpFunctionLogs(sinkName);
         }
 
         // update the sink
@@ -131,15 +136,15 @@ public class PulsarIOSinkRunner extends PulsarIOTestRunner {
     }
 
     @SuppressWarnings("rawtypes")
-	protected void prepareSink(SinkTester tester) throws Exception {
+    protected void prepareSink(SinkTester tester) throws Exception {
         tester.prepareSink();
     }
 
     protected void submitSinkConnector(@SuppressWarnings("rawtypes") SinkTester tester,
-                                       String tenant,
-                                       String namespace,
-                                       String sinkName,
-                                       String inputTopicName) throws Exception {
+            String tenant,
+            String namespace,
+            String sinkName,
+            String inputTopicName) throws Exception {
         String[] commands;
         if (tester.getSinkType() != SinkTester.SinkType.UNDEFINED) {
             commands = new String[] {
@@ -168,15 +173,15 @@ public class PulsarIOSinkRunner extends PulsarIOTestRunner {
         log.info("Run command : {}", StringUtils.join(commands, ' '));
         ContainerExecResult result = pulsarCluster.getAnyWorker().execCmd(commands);
         assertTrue(
-            result.getStdout().contains("\"Created successfully\""),
-            result.getStdout());
+                result.getStdout().contains("\"Created successfully\""),
+                result.getStdout());
     }
 
     protected void updateSinkConnector(@SuppressWarnings("rawtypes") SinkTester tester,
-                                       String tenant,
-                                       String namespace,
-                                       String sinkName,
-                                       String inputTopicName) throws Exception {
+            String tenant,
+            String namespace,
+            String sinkName,
+            String inputTopicName) throws Exception {
         String[] commands;
         if (tester.getSinkType() != SinkTester.SinkType.UNDEFINED) {
             commands = new String[] {
@@ -212,17 +217,17 @@ public class PulsarIOSinkRunner extends PulsarIOTestRunner {
     }
 
     protected void getSinkInfoSuccess(@SuppressWarnings("rawtypes") SinkTester tester,
-                                      String tenant,
-                                      String namespace,
-                                      String sinkName,
-                                      boolean builtin) throws Exception {
+            String tenant,
+            String namespace,
+            String sinkName,
+            boolean builtin) throws Exception {
         String[] commands = {
-            PulsarCluster.ADMIN_SCRIPT,
-            "sink",
-            "get",
-            "--tenant", tenant,
-            "--namespace", namespace,
-            "--name", sinkName
+                PulsarCluster.ADMIN_SCRIPT,
+                "sink",
+                "get",
+                "--tenant", tenant,
+                "--namespace", namespace,
+                "--name", sinkName
         };
         ContainerExecResult result = pulsarCluster.getAnyWorker().execCmd(commands);
         log.info("Get sink info : {}", result.getStdout());
@@ -241,12 +246,12 @@ public class PulsarIOSinkRunner extends PulsarIOTestRunner {
 
     protected void getSinkStatus(String tenant, String namespace, String sinkName) throws Exception {
         final String[] commands = {
-            PulsarCluster.ADMIN_SCRIPT,
-            "sink",
-            "status",
-            "--tenant", tenant,
-            "--namespace", namespace,
-            "--name", sinkName
+                PulsarCluster.ADMIN_SCRIPT,
+                "sink",
+                "status",
+                "--tenant", tenant,
+                "--namespace", namespace,
+                "--name", sinkName
         };
 
         final ContainerExecResult result = pulsarCluster.getAnyWorker().execCmd(commands);
@@ -268,30 +273,30 @@ public class PulsarIOSinkRunner extends PulsarIOTestRunner {
     protected void deleteSink(String tenant, String namespace, String sinkName) throws Exception {
 
         final String[] commands = {
-            PulsarCluster.ADMIN_SCRIPT,
-            "sink",
-            "delete",
-            "--tenant", tenant,
-            "--namespace", namespace,
-            "--name", sinkName
+                PulsarCluster.ADMIN_SCRIPT,
+                "sink",
+                "delete",
+                "--tenant", tenant,
+                "--namespace", namespace,
+                "--name", sinkName
         };
 
         ContainerExecResult result = pulsarCluster.getAnyWorker().execCmd(commands);
         assertTrue(
-            result.getStdout().contains("Deleted successfully"),
-            result.getStdout()
+                result.getStdout().contains("Deleted successfully"),
+                result.getStdout()
         );
         result.assertNoStderr();
     }
 
     protected void getSinkInfoNotFound(String tenant, String namespace, String sinkName) throws Exception {
         final String[] commands = {
-            PulsarCluster.ADMIN_SCRIPT,
-            "sink",
-            "get",
-            "--tenant", tenant,
-            "--namespace", namespace,
-            "--name", sinkName
+                PulsarCluster.ADMIN_SCRIPT,
+                "sink",
+                "get",
+                "--tenant", tenant,
+                "--namespace", namespace,
+                "--name", sinkName
         };
         try {
             pulsarCluster.getAnyWorker().execCmd(commands);
@@ -302,9 +307,9 @@ public class PulsarIOSinkRunner extends PulsarIOTestRunner {
     }
 
     protected void waitForProcessingSinkMessages(String tenant,
-                                                 String namespace,
-                                                 String sinkName,
-                                                 int numMessages) throws Exception {
+            String namespace,
+            String sinkName,
+            int numMessages) throws Exception {
         final String[] commands = {
                 PulsarCluster.ADMIN_SCRIPT,
                 "sink",
@@ -332,20 +337,20 @@ public class PulsarIOSinkRunner extends PulsarIOTestRunner {
         assertEquals(sinkStatus.getInstances().get(0).getStatus().getNumRestarts(), 0);
         assertEquals(sinkStatus.getInstances().get(0).getStatus().getLatestSystemExceptions().size(), 0);
     }
-    
+
     // This for JdbcPostgresSinkTester
     protected Map<String, String> produceSchemaInsertMessagesToInputTopic(String inputTopicName,
-                                                                          int numMessages,
-                                                                          Schema<Foo> schema) throws Exception {
+            int numMessages,
+            Schema<Foo> schema) throws Exception {
         @Cleanup
         PulsarClient client = PulsarClient.builder()
-            .serviceUrl(pulsarCluster.getPlainTextServiceUrl())
-            .build();
+                .serviceUrl(pulsarCluster.getPlainTextServiceUrl())
+                .build();
 
         @Cleanup
         Producer<Foo> producer = client.newProducer(schema)
-            .topic(inputTopicName)
-            .create();
+                .topic(inputTopicName)
+                .create();
 
         LinkedHashMap<String, String> kvs = new LinkedHashMap<>();
         for (int i = 0; i < numMessages; i++) {
@@ -372,8 +377,8 @@ public class PulsarIOSinkRunner extends PulsarIOTestRunner {
 
     // This for JdbcPostgresSinkTester
     protected Map<String, String> produceSchemaUpdateMessagesToInputTopic(String inputTopicName,
-                                                                          int numMessages,
-                                                                          Schema<Foo> schema) throws Exception {
+            int numMessages,
+            Schema<Foo> schema) throws Exception {
         @Cleanup
         PulsarClient client = PulsarClient.builder()
                 .serviceUrl(pulsarCluster.getPlainTextServiceUrl())
@@ -411,8 +416,8 @@ public class PulsarIOSinkRunner extends PulsarIOTestRunner {
 
     // This for JdbcPostgresSinkTester
     protected Map<String, String> produceSchemaDeleteMessagesToInputTopic(String inputTopicName,
-                                                                          int numMessages,
-                                                                          Schema<Foo> schema) throws Exception {
+            int numMessages,
+            Schema<Foo> schema) throws Exception {
         @Cleanup
         PulsarClient client = PulsarClient.builder()
                 .serviceUrl(pulsarCluster.getPlainTextServiceUrl())

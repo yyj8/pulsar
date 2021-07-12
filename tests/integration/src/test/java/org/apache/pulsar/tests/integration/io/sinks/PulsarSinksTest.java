@@ -54,12 +54,17 @@ public class PulsarSinksTest extends PulsarIOTestBase {
         testSink(new JdbcPostgresSinkTester(), true);
     }
 
-    @Test(enabled = false, groups = "sink")
-    public void testElasticSearchSink() throws Exception {
-        testSink(new ElasticSearchSinkTester(), true);
+    @Test(groups = "sink")
+    public void testElasticSearchSinkRawData() throws Exception {
+        testSink(new ElasticSearchSinkTester(false), true);
     }
 
     @Test(groups = "sink")
+    public void testElasticSearchSinkSchemaEnabled() throws Exception {
+        testSink(new ElasticSearchSinkTester(true), true);
+    }
+
+    @Test(enabled = false, groups = "sink")
     public void testRabbitMQSink() throws Exception {
         final String containerName = "rabbitmq-" + randomName(8);
         testSink(new RabbitMQSinkTester(containerName), true, new RabbitMQSourceTester(containerName));
