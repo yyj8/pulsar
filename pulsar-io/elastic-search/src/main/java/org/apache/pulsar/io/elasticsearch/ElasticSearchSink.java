@@ -123,7 +123,7 @@ public class ElasticSearchSink implements Sink<GenericObject> {
                         elasticsearchClient.failed(jsonProcessingException);
                         throw jsonProcessingException;
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 log.error("write error:", e);
                 throw e;
             }
