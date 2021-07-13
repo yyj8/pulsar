@@ -273,9 +273,7 @@ public class ElasticSearchClient {
                 indexRequest.id(idAndDoc.getLeft());
             indexRequest.type(config.getTypeName());
             indexRequest.source(idAndDoc.getRight(), XContentType.JSON);
-            log.info("calling index...");
             IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
-            log.info("index id={} result={}", idAndDoc.getLeft(), indexResponse.getResult());
             if (indexResponse.getResult().equals(DocWriteResponse.Result.CREATED) ||
                     indexResponse.getResult().equals(DocWriteResponse.Result.UPDATED)) {
                 record.ack();
