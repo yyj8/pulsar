@@ -25,7 +25,7 @@ public class ElasticSearchContainer extends ChaosContainer<ElasticSearchContaine
     public static final String NAME = "ElasticSearch";
     static final Integer[] PORTS = { 9200, 9300 };
     
-    private static final String IMAGE_NAME = "docker.elastic.co/elasticsearch/elasticsearch:6.4.0";
+    private static final String IMAGE_NAME = "docker.elastic.co/elasticsearch/elasticsearch:7.13.3";
 
     public ElasticSearchContainer(String clusterName) {
         super(clusterName, IMAGE_NAME);       

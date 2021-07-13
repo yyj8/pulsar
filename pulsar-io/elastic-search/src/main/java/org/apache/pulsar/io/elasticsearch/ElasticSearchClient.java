@@ -184,6 +184,7 @@ public class ElasticSearchClient {
         );
 
         URL url = new URL(config.getElasticSearchUrl());
+        log.info("ElasticSearch URL {}", url);
         RestClientBuilder builder = RestClient.builder(new HttpHost(url.getHost(), url.getPort(), url.getProtocol()))
                 .setRequestConfigCallback(new RestClientBuilder.RequestConfigCallback() {
                     @Override
@@ -283,7 +284,7 @@ public class ElasticSearchClient {
                 return false;
             }
         } catch (final Exception ex) {
-            log.info("index failed id=" + idAndDoc.getLeft(), ex);
+            log.error("index failed id=" + idAndDoc.getLeft(), ex);
             record.fail();
             throw ex;
         }
@@ -368,6 +369,9 @@ public class ElasticSearchClient {
     }
 
     private void checkIndexExists(Optional<String> topicName) throws IOException {
+        if (!config.isCreateIndexIfNeeded()) {
+            return;
+        }
         String indexName = indexName(topicName);
         if (!indexCache.contains(indexName)) {
             synchronized (this) {
@@ -467,6 +471,7 @@ public class ElasticSearchClient {
         try {
             return backoffRetry.retry(callable, config.getMaxRetries(), config.getRetryBackoffInMs(), source);
         } catch (Exception e) {
+            log.error("error in command {} wth retry", source, e);
             throw new ElasticSearchConnectionException(source + " failed", e);
         }
     }
