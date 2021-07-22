@@ -40,5 +40,8 @@ mvn versions:set -DnewVersion=$NEW_VERSION
 mvn versions:set -DnewVersion=$NEW_VERSION -pl buildtools
 # Set terraform ansible deployment pulsar version
 sed -i -e "s/${OLD_VERSION}/${NEW_VERSION}/g" ${TERRAFORM_DIR}/deploy-pulsar.yaml
+# MacOs leaves this file sometimes
+rm -f ${TERRAFORM_DIR}/deploy-pulsar.yaml-e
+
 
 popd
