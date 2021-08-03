@@ -1811,6 +1811,9 @@ public class PersistentTopic extends AbstractTopic
         stats.deduplicationStatus = messageDeduplication.getStatus().toString();
         stats.topicEpoch = topicEpoch.orElse(null);
         stats.offloadedStorageSize = ledger.getOffloadedSize();
+        stats.lastOffloadLedgerId = ledger.getLastOffloadedLedgerId();
+        stats.lastOffloadSuccessTimeStamp = ledger.getLastOffloadedSuccessTimestamp();
+        stats.lastOffloadFailureTimeStamp = ledger.getLastOffloadedFailureTimestamp();
         return stats;
     }
 
