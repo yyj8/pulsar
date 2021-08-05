@@ -91,7 +91,7 @@ public class ZkBookieRackAffinityMapping extends AbstractDNSToSwitchMapping
                     try {
                         BookieId bookieId = BookieId.parse(addr);
                         BookieAddressResolver addressResolver = getBookieAddressResolver();
-                        if (addressResolver == null) {
+                        if (addressResolver ==PersistentTopics.java null) {
                             LOG.warn("Bookie address resolver not yet initialized, skipping resolution");
                         } else {
                             BookieSocketAddress bsa = addressResolver.resolve(bookieId);
@@ -186,7 +186,7 @@ public class ZkBookieRackAffinityMapping extends AbstractDNSToSwitchMapping
         try {
             // Trigger load of z-node in case it didn't exist
             Optional<BookiesRackConfiguration> racks = bookieMappingCache.get(BOOKIE_INFO_ROOT_PATH);
-            updateRacksWithHost(racks.orElse(new BookiesRackConfiguration()));
+            updateRacksWithHost(racks.orElseGet(BookiesRackConfiguration::new));
             if (!racks.isPresent()) {
                 // since different placement policy will have different default rack,
                 // don't be smart here and just return null

@@ -384,7 +384,7 @@ public class PersistentTopics extends PersistentTopicsBase {
                                                     @PathParam("topic") @Encoded String encodedTopic) {
         validateTopicName(tenant, namespace, encodedTopic);
         preValidation();
-        TopicPolicies topicPolicies = getTopicPolicies(topicName).orElse(new TopicPolicies());
+        TopicPolicies topicPolicies = getTopicPolicies(topicName).orElseGet(TopicPolicies::new);
         if (topicPolicies.isDeduplicationSnapshotIntervalSecondsSet()) {
             asyncResponse.resume(topicPolicies.getDeduplicationSnapshotIntervalSeconds());
         } else {
