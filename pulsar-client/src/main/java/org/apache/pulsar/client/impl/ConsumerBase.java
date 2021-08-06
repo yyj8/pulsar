@@ -34,6 +34,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -84,6 +85,7 @@ public abstract class ConsumerBase<T> extends HandlerState implements Consumer<T
     protected volatile long incomingMessagesSize = 0;
     protected volatile Timeout batchReceiveTimeout = null;
     protected final Lock reentrantLock = new ReentrantLock();
+    private final AtomicInteger executorQueueSize = new AtomicInteger(0);
 
     protected ConsumerBase(PulsarClientImpl client, String topic, ConsumerConfigurationData<T> conf,
                            int receiverQueueSize, ExecutorProvider executorProvider,
@@ -908,26 +910,26 @@ public abstract class ConsumerBase<T> extends HandlerState implements Consumer<T
     protected void triggerListener() {
         // Trigger the notification on the message listener in a separate thread to avoid blocking the networking
         // thread while the message processing happens
-        Message<T> msg;
-        do {
-            try {
-                msg = internalReceive(0, TimeUnit.MILLISECONDS);
+        try {
+            // Control executor to call MessageListener one by one.
+            if (executorQueueSize.get() < 1) {
+                final Message<T> msg = internalReceive(0, TimeUnit.MILLISECONDS);
                 if (msg != null) {
-                    final Message<T> finalMsg = msg;
+                    executorQueueSize.incrementAndGet();
                     if (SubscriptionType.Key_Shared == conf.getSubscriptionType()) {
-                        executorProvider.getExecutor(peekMessageKey(finalMsg)).execute(() ->
-                                callMessageListener(finalMsg));
+                        executorProvider.getExecutor(peekMessageKey(msg)).execute(() ->
+                                callMessageListener(msg));
                     } else {
                         getExternalExecutor(msg).execute(() -> {
-                            callMessageListener(finalMsg);
+                            callMessageListener(msg);
                         });
                     }
                 }
-            } catch (PulsarClientException e) {
-                log.warn("[{}] [{}] Failed to dequeue the message for listener", topic, subscription, e);
-                return;
             }
-        } while (msg != null);
+        } catch (PulsarClientException e) {
+            log.warn("[{}] [{}] Failed to dequeue the message for listener", topic, subscription, e);
+            return;
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("[{}] [{}] Message has been cleared from the queue", topic, subscription);
@@ -944,6 +946,9 @@ public abstract class ConsumerBase<T> extends HandlerState implements Consumer<T
         } catch (Throwable t) {
             log.error("[{}][{}] Message listener error in processing message: {}", topic, subscription,
                     msg.getMessageId(), t);
+        } finally {
+            executorQueueSize.decrementAndGet();
+            triggerListener();
         }
     }
 
