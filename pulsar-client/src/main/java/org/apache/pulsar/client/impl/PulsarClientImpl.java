@@ -220,7 +220,6 @@ public class PulsarClientImpl implements PulsarClient {
         return conf;
     }
 
-    @VisibleForTesting
     public Clock getClientClock() {
         return clientClock;
     }
