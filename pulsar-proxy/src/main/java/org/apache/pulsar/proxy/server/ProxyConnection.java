@@ -313,7 +313,7 @@ public class ProxyConnection extends PulsarHandler implements FutureListener<Voi
                 return;
             }
 
-            AuthData clientData = AuthData.of(connect.getAuthData());
+            AuthData clientData = AuthData.of(connect.hasAuthData() ? connect.getAuthData() : null);
             if (connect.hasAuthMethodName()) {
                 authMethod = connect.getAuthMethodName();
             } else if (connect.hasAuthMethod()) {
@@ -411,7 +411,9 @@ public class ProxyConnection extends PulsarHandler implements FutureListener<Voi
         state = State.Closed;
         ctx.close();
         try {
-            client.close();
+            if (client != null) {
+                client.close();
+            }
         } catch (PulsarClientException e) {
             LOG.error("Unable to close pulsar client - {}. Error - {}", client, e.getMessage());
         }
