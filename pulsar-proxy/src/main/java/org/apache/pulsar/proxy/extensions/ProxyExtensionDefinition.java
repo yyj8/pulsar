@@ -16,31 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.pulsar.proxy.protocol;
+package org.apache.pulsar.proxy.extensions;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Metadata information about a Pulsar protocol handler.
+ * Metadata information about a Proxy Extension.
  */
 @Data
 @NoArgsConstructor
-public class ProtocolHandlerDefinition {
+public class ProxyExtensionDefinition {
 
     /**
-     * The name of the protocol.
+     * The name of the extension.
      */
     private String name;
 
     /**
-     * The description of the protocol handler to be used for user help.
+     * The description of the extension to be used for user help.
      */
     private String description;
 
     /**
-     * The class name for the protocol handler.
+     * The class name for the extension.
      */
-    private String handlerClass;
+    private String extensionClass;
 
 }

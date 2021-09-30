@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.pulsar.proxy.protocol;
+package org.apache.pulsar.proxy.extensions;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -40,22 +40,22 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.expectThrows;
 
 /**
- * Unit test {@link ProtocolHandlerWithClassLoader}.
+ * Unit test {@link ProxyExtensionWithClassLoader}.
  */
 @Test(groups = "broker")
-public class ProtocolHandlerWithClassLoaderTest {
+public class ProxyExtensionWithClassLoaderTest {
 
     @Test
     public void testWrapper() throws Exception {
-        ProtocolHandler h = mock(ProtocolHandler.class);
+        ProxyExtension h = mock(ProxyExtension.class);
         NarClassLoader loader = mock(NarClassLoader.class);
-        ProtocolHandlerWithClassLoader wrapper = new ProtocolHandlerWithClassLoader(h, loader);
+        ProxyExtensionWithClassLoader wrapper = new ProxyExtensionWithClassLoader(h, loader);
 
         String protocol = "kafka";
 
-        when(h.protocolName()).thenReturn(protocol);
-        assertEquals(protocol, wrapper.protocolName());
-        verify(h, times(1)).protocolName();
+        when(h.extensionName()).thenReturn(protocol);
+        assertEquals(protocol, wrapper.extensionName());
+        verify(h, times(1)).extensionName();
 
         when(h.accept(eq(protocol))).thenReturn(true);
         assertTrue(wrapper.accept(protocol));
@@ -75,9 +75,9 @@ public class ProtocolHandlerWithClassLoaderTest {
 
         String protocol = "test-protocol";
 
-        ProtocolHandler h = new ProtocolHandler() {
+        ProxyExtension h = new ProxyExtension() {
             @Override
-            public String protocolName() {
+            public String extensionName() {
                 assertEquals(Thread.currentThread().getContextClassLoader(), loader);
                 return protocol;
             }
@@ -110,11 +110,11 @@ public class ProtocolHandlerWithClassLoaderTest {
                 assertEquals(Thread.currentThread().getContextClassLoader(), loader);
             }
         };
-        ProtocolHandlerWithClassLoader wrapper = new ProtocolHandlerWithClassLoader(h, loader);
+        ProxyExtensionWithClassLoader wrapper = new ProxyExtensionWithClassLoader(h, loader);
 
         ClassLoader curClassLoader = Thread.currentThread().getContextClassLoader();
 
-        assertEquals(wrapper.protocolName(), protocol);
+        assertEquals(wrapper.extensionName(), protocol);
         assertEquals(Thread.currentThread().getContextClassLoader(), curClassLoader);
 
         assertTrue(wrapper.accept(protocol));

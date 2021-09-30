@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.pulsar.proxy.protocol;
+package org.apache.pulsar.proxy.extensions;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -32,61 +32,61 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 
 /**
- * A protocol handler with its classloader.
+ * A extension with its classloader.
  */
 @Slf4j
 @Data
 @RequiredArgsConstructor
-class ProtocolHandlerWithClassLoader implements ProtocolHandler {
+class ProxyExtensionWithClassLoader implements ProxyExtension {
 
-    private final ProtocolHandler handler;
+    private final ProxyExtension extension;
     private final NarClassLoader classLoader;
 
     @Override
-    public String protocolName() {
+    public String extensionName() {
         try (ClassLoaderSwitcher ignored = new ClassLoaderSwitcher(classLoader)) {
-            return handler.protocolName();
+            return extension.extensionName();
         }
     }
 
     @Override
-    public boolean accept(String protocol) {
+    public boolean accept(String extensionName) {
         try (ClassLoaderSwitcher ignored = new ClassLoaderSwitcher(classLoader)) {
-            return handler.accept(protocol);
+            return extension.accept(extensionName);
         }
     }
 
     @Override
     public void initialize(ProxyConfiguration conf) throws Exception {
         try (ClassLoaderSwitcher ignored = new ClassLoaderSwitcher(classLoader)) {
-            handler.initialize(conf);
+            extension.initialize(conf);
         }
     }
 
     @Override
     public void start(ProxyService service) {
         try (ClassLoaderSwitcher ignored = new ClassLoaderSwitcher(classLoader)) {
-            handler.start(service);
+            extension.start(service);
         }
     }
 
     @Override
     public Map<InetSocketAddress, ChannelInitializer<SocketChannel>> newChannelInitializers() {
         try (ClassLoaderSwitcher ignored = new ClassLoaderSwitcher(classLoader)) {
-            return handler.newChannelInitializers();
+            return extension.newChannelInitializers();
         }
     }
 
     @Override
     public void close() {
         try (ClassLoaderSwitcher ignored = new ClassLoaderSwitcher(classLoader)) {
-            handler.close();
+            extension.close();
         }
 
         try {
             classLoader.close();
         } catch (IOException e) {
-            log.warn("Failed to close the protocol handler class loader", e);
+            log.warn("Failed to close the extension class loader", e);
         }
     }
 
