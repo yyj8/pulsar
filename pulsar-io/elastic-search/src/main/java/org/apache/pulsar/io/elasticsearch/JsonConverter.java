@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericEnumSymbol;
+import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.generic.GenericRecord;
 
 import java.math.BigDecimal;
@@ -57,6 +59,8 @@ public class JsonConverter {
         }
         try {
             switch (schema.getType()) {
+                case NULL: // this should not happen
+                    return jsonNodeFactory.nullNode();
                 case INT:
                     return jsonNodeFactory.numberNode((Integer) value);
                 case LONG:
@@ -69,8 +73,8 @@ public class JsonConverter {
                     return jsonNodeFactory.booleanNode((Boolean) value);
                 case BYTES:
                     return jsonNodeFactory.binaryNode((byte[]) value);
-                case STRING:
-                    return jsonNodeFactory.textNode(value.toString()); // can be a String or org.apache.avro.util.Utf8
+                case FIXED:
+                    return jsonNodeFactory.binaryNode(((GenericFixed) value).bytes());
                 case ARRAY: {
                     Schema elementSchema = schema.getElementType();
                     ArrayNode arrayNode = jsonNodeFactory.arrayNode();
@@ -97,7 +101,12 @@ public class JsonConverter {
                             continue;
                         return toJson(s, value);
                     }
-                default:
+                    // this case should not happen
+                    return jsonNodeFactory.textNode(value.toString());
+                case ENUM: // GenericEnumSymbol
+                case STRING:  // can be a String or org.apache.avro.util.Utf8
+                    return jsonNodeFactory.textNode(value.toString());
+                default: // do not fail the write
                     throw new UnsupportedOperationException("Unknown AVRO schema type=" + schema.getType());
             }
         } catch (ClassCastException error) {
