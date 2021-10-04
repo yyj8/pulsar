@@ -103,7 +103,7 @@ flexible messaging model and an intuitive client API.</description>
     <!-- apache commons -->
     <commons-compress.version>1.21</commons-compress.version>
 
-    <!-- Use Luna Streaming BookKeeper custom version -->
+    <!-- Use Apache BookKeeper version -->
     <bookkeeper.version>4.14.1.1.0.1</bookkeeper.version>
     <zookeeper.version>3.6.3</zookeeper.version>
     <snappy.version>1.1.7</snappy.version> <!-- ZooKeeper server -->
