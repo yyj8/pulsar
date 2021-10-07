@@ -55,6 +55,9 @@ import org.apache.pulsar.broker.cache.ConfigurationCacheService;
 import org.apache.pulsar.broker.cache.ConfigurationMetadataCacheService;
 import org.apache.pulsar.broker.resources.PulsarResources;
 import org.apache.pulsar.broker.web.plugin.servlet.AdditionalServlets;
+import org.apache.pulsar.client.api.Authentication;
+import org.apache.pulsar.client.api.AuthenticationFactory;
+import org.apache.pulsar.client.impl.auth.AuthenticationDisabled;
 import org.apache.pulsar.common.allocator.PulsarByteBufAllocator;
 import org.apache.pulsar.common.configuration.PulsarConfigurationLoader;
 import org.apache.pulsar.common.util.netty.EventLoopUtil;
@@ -74,6 +77,7 @@ import com.google.common.collect.Sets;
 public class ProxyService implements Closeable {
 
     private final ProxyConfiguration proxyConfig;
+    private final Authentication proxyClientAuthentication;
     private final Timer timer;
     private String serviceUrl;
     private String serviceUrlTls;
@@ -169,6 +173,12 @@ public class ProxyService implements Closeable {
             });
         }, 60, TimeUnit.SECONDS);
         this.proxyAdditionalServlets = AdditionalServlets.load(proxyConfig);
+        if (proxyConfig.getBrokerClientAuthenticationPlugin() != null) {
+            proxyClientAuthentication = AuthenticationFactory.create(proxyConfig.getBrokerClientAuthenticationPlugin(),
+                    proxyConfig.getBrokerClientAuthenticationParameters());
+        } else {
+            proxyClientAuthentication = AuthenticationDisabled.INSTANCE;
+        }
     }
 
     public void start() throws Exception {
@@ -380,6 +390,10 @@ public class ProxyService implements Closeable {
     public MetadataStoreExtended createConfigurationMetadataStore() throws MetadataStoreException {
         return PulsarResources.createMetadataStore(proxyConfig.getConfigurationStoreServers(),
                 proxyConfig.getZookeeperSessionTimeoutMs());
+    }
+
+    public Authentication getProxyClientAuthenticationPlugin() {
+        return this.proxyClientAuthentication;
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(ProxyService.class);
