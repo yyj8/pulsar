@@ -30,12 +30,12 @@
     <name>Apache Pulsar :: Tests :: Docker Images :: Java Test Functions</name>
     <dependencies>
         <dependency>
-            <groupId>org.apache.pulsar</groupId>
+            <groupId>com.datastax.oss</groupId>
             <artifactId>pulsar-io-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.pulsar</groupId>
+            <groupId>com.datastax.oss</groupId>
             <artifactId>pulsar-client</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -53,7 +53,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.pulsar</groupId>
+            <groupId>com.datastax.oss</groupId>
             <artifactId>pulsar-functions-api-examples</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -82,8 +82,8 @@
                             </transformers>
                             <artifactSet>
                                 <includes>
-                                    <include>org.apache.pulsar:pulsar-client</include>
-                                    <include>org.apache.pulsar:pulsar-functions-api-examples</include>
+                                    <include>com.datastax.oss:pulsar-client</include>
+                                    <include>com.datastax.oss:pulsar-functions-api-examples</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
