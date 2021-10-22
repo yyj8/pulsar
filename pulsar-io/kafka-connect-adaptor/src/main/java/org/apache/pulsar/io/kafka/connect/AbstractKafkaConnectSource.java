@@ -18,6 +18,15 @@
  */
 package org.apache.pulsar.io.kafka.connect;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.connect.runtime.TaskConfig;
@@ -34,7 +43,6 @@ import org.apache.pulsar.kafka.shade.io.confluent.connect.avro.AvroConverter;
 import org.apache.pulsar.kafka.shade.io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import org.apache.pulsar.kafka.shade.io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 
-import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -155,6 +163,7 @@ public abstract class AbstractKafkaConnectSource<T> implements Source<T> {
                 } catch (ExecutionException ex) {
                     // log the error, continue execution
                     log.error("execution exception while get flushFuture", ex);
+                    throw new Exception("Flush failed", ex.getCause());
                 } finally {
                     flushFuture = null;
                     currentBatch = null;
@@ -174,7 +183,6 @@ public abstract class AbstractKafkaConnectSource<T> implements Source<T> {
 
     private static Map<String, String> PROPERTIES = Collections.emptyMap();
     private static Optional<Long> RECORD_SEQUENCE = Optional.empty();
-    private static long FLUSH_TIMEOUT_MS = 60000;
 
     public abstract class AbstractKafkaSourceRecord<T> implements Record {
         @Getter
@@ -235,8 +243,15 @@ public abstract class AbstractKafkaConnectSource<T> implements Source<T> {
                     flushFuture.complete(null);
                 } catch (InterruptedException exception) {
                     log.warn("Flush of {} offsets interrupted, cancelling", this);
+                    Thread.currentThread().interrupt();
                     offsetWriter.cancelFlush();
-                    flushFuture.completeExceptionally(new Exception("Failed to commit offsets"));
+                    flushFuture.completeExceptionally(new Exception("Failed to commit offsets", exception));
+                } catch (Throwable t) {
+                    // SourceTask can throw unchecked ConnectException/KafkaException.
+                    // Make sure the future is cancelled in that case
+                    log.warn("Flush of {} offsets failed, cancelling", this);
+                    offsetWriter.cancelFlush();
+                    flushFuture.completeExceptionally(new Exception("Failed to commit offsets", t));
                 }
             }
         }
