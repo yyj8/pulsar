@@ -91,7 +91,7 @@ public class ZkBookieRackAffinityMapping extends AbstractDNSToSwitchMapping
                     try {
                         BookieId bookieId = BookieId.parse(addr);
                         BookieAddressResolver addressResolver = getBookieAddressResolver();
-                        if (addressResolver ==PersistentTopics.java null) {
+                        if (addressResolver == null) {
                             LOG.warn("Bookie address resolver not yet initialized, skipping resolution");
                         } else {
                             BookieSocketAddress bsa = addressResolver.resolve(bookieId);
