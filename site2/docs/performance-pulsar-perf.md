@@ -32,7 +32,7 @@ After the command is executed, the test data is continuously output on the Conso
 19:54:44.336 [Thread-1] INFO  org.apache.pulsar.testclient.PerformanceProducer - Aggregated latency stats --- Latency: mean:   3.383 ms - med:   3.293 - 95pct:   4.610 - 99pct:   5.059 - 99.9pct:   5.588 - 99.99pct:   5.837 - 99.999pct:   6.609 - Max:   6.609
 ```
 
-From the above test data, you can get the throughput statistics and the write latency statistics. The aggregated statistics is printed when the Pulsar Perf is stopped. You can press **Ctrl**+**C** to stop the Pulsar Perf. After the Pulsar Perf is stopped, the [HdrHistogram](http://hdrhistogram.github.io/HdrHistogram/) formatted test result appears under your directory. The document looks like `perf-producer-1589370810837.hgrm`. You can also check the test result through [HdrHistogram Plotter](https://hdrhistogram.github.io/HdrHistogram/plotFiles.html). For details about how to check the test result through [HdrHistogram Plotter](https://hdrhistogram.github.io/HdrHistogram/plotFiles.html), see [HdrHistogram Plotter](#hdrhistogram-plotter).
+From the above test data, you can get the throughput statistics and the write latency statistics. The aggregated statistics is printed when the Pulsar Perf is stopped. You can press **Ctrl**+**C** to stop the Pulsar Perf. If you specify a filename with the `--histogram-file` parameter, a file with the [HdrHistogram](http://hdrhistogram.github.io/HdrHistogram/) formatted test result appears under your directory after Pulsar Perf is stopped. You can also check the test result through [HdrHistogram Plotter](https://hdrhistogram.github.io/HdrHistogram/plotFiles.html). For details about how to check the test result through [HdrHistogram Plotter](https://hdrhistogram.github.io/HdrHistogram/plotFiles.html), see [HdrHistogram Plotter](#hdrhistogram-plotter).
 
 ### Configuration options for `pulsar-perf produce`
 
@@ -54,6 +54,7 @@ The following table lists configuration options available for the `pulsar-perf p
 | encryption-key-value-file | Set the file which contains the public key used to encrypt the payload. | N/A |
 | exit-on-failure | Configure whether to exit from the process on publish failure. | false |
 | help | Configure the help message. | false |
+| histogram-file | HdrHistogram output file | N/A |
 | max-connections | Set the maximum number of TCP connections to a single broker. | 100 |
 | max-outstanding | Set the maximum number of outstanding messages. | 1000 |
 | max-outstanding-across-partitions | Set the maximum number of outstanding messages across partitions. | 50000 |
@@ -113,6 +114,7 @@ The following table lists configuration options available for the `pulsar-perf c
 | encryption-key-name | Set the name of the public key used to encrypt the payload. | N/A |
 | encryption-key-value-file | Set the file which contains the public key used to encrypt the payload. | N/A |
 | help | Configure the help message. | false |
+| histogram-file | HdrHistogram output file | N/A |
 | max-connections | Set the maximum number of TCP connections to a single broker. | 100 |
 | num-consumers | Set the number of consumers for each topic. | 1 |
 | num-topic | Set the number of topics. | 1 |
