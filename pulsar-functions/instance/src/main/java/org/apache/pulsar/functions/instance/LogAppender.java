@@ -101,7 +101,7 @@ public class LogAppender implements Appender {
                     .property("function", fqn)
                     .create();
         } catch (Exception e) {
-            throw new RuntimeException("Error starting LogTopic Producer", e);
+            throw new RuntimeException("Error starting LogTopic Producer for function " + fqn, e);
         }
         this.state = State.STARTED;
     }
@@ -109,8 +109,10 @@ public class LogAppender implements Appender {
     @Override
     public void stop() {
         this.state = State.STOPPING;
-        producer.closeAsync();
-        producer = null;
+        if (producer != null) {
+            producer.closeAsync();
+            producer = null;
+        }
         this.state = State.STOPPED;
     }
 
