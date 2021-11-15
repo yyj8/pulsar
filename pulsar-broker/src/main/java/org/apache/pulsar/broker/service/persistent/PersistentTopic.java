@@ -1424,7 +1424,7 @@ public class PersistentTopic extends AbstractTopic
 
     protected boolean addReplicationCluster(String remoteCluster, ManagedCursor cursor, String localCluster) {
         AtomicBoolean isReplicatorStarted = new AtomicBoolean(true);
-        replicators.computeIfAbsent(remoteCluster, r -> {
+        Replicator replicator = replicators.computeIfAbsent(remoteCluster, r -> {
             try {
                 return new PersistentReplicator(PersistentTopic.this, cursor, localCluster, remoteCluster,
                         brokerService);
@@ -1435,8 +1435,8 @@ public class PersistentTopic extends AbstractTopic
             return null;
         });
         // clean up replicator if startup is failed
-        if (!isReplicatorStarted.get()) {
-            replicators.remove(remoteCluster);
+        if (replicator == null) {
+            replicators.removeNullValue(remoteCluster);
         }
         return isReplicatorStarted.get();
     }
