@@ -875,14 +875,14 @@ public class ServerCnxTest {
         String producerName = "my-producer";
 
         ByteBuf createProducer1 = Commands.newProducer(successTopicName, 1 /* producer id */, 1 /* request id */,
-                producerName, Collections.emptyMap(), false);
+                producerName, Collections.emptyMap());
         channel.writeInbound(createProducer1);
 
         ByteBuf closeProducer = Commands.newCloseProducer(1 /* producer id */, 2 /* request id */ );
         channel.writeInbound(closeProducer);
 
         ByteBuf createProducer2 = Commands.newProducer(successTopicName, 1 /* producer id */, 3 /* request id */,
-                producerName, Collections.emptyMap(), false);
+                producerName, Collections.emptyMap());
         channel.writeInbound(createProducer2);
 
         // Complete the topic opening: It will make 2nd producer creation successful
@@ -900,7 +900,7 @@ public class ServerCnxTest {
 
         // Send create command after getting the CommandProducerSuccess to ensure correct ordering
         ByteBuf createProducer3 = Commands.newProducer(successTopicName, 2 /* producer id */, 4 /* request id */,
-                producerName, Collections.emptyMap(), false);
+                producerName, Collections.emptyMap());
         channel.writeInbound(createProducer3);
 
         // 3nd producer will fail
