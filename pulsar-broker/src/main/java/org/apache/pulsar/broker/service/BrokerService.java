@@ -395,7 +395,6 @@ public class BrokerService implements Closeable, ZooKeeperCacheListener<Policies
             DefaultThreadFactory defaultThreadFactory = new DefaultThreadFactory("pulsar-ph-" + protocol);
             EventLoopGroup dedicatedWorkerGroup =
                     EventLoopUtil.newEventLoopGroup(configuration.getNumIOThreads(), false, defaultThreadFactory);
-            bootstrap.channel(EventLoopUtil.getServerSocketChannelClass(dedicatedWorkerGroup));
             protocolHandlersWorkerGroups.add(dedicatedWorkerGroup);
             bootstrap.group(this.acceptorGroup, dedicatedWorkerGroup);
         }

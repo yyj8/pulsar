@@ -279,7 +279,6 @@ public class ProxyService implements Closeable {
             EventLoopGroup dedicatedWorkerGroup =
                     EventLoopUtil.newEventLoopGroup(numThreads, false, defaultThreadFactory);
             extensionsWorkerGroups.add(dedicatedWorkerGroup);
-            bootstrap.channel(EventLoopUtil.getServerSocketChannelClass(dedicatedWorkerGroup));
             bootstrap.group(this.acceptorGroup, dedicatedWorkerGroup);
         }
         bootstrap.childHandler(initializer);
