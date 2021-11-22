@@ -161,7 +161,7 @@ public class OpAddEntry extends SafeRunnable implements AddCallback, CloseCallba
             return;
         }
 
-        this.entryId = entryId;
+        this.entryId = entryId;Producer.java
         if (log.isDebugEnabled()) {
             log.debug("[{}] [{}] write-complete: ledger-id={} entry-id={} size={} rc={}", this, ml.getName(),
                     lh.getId(), entryId, dataLength, rc);
