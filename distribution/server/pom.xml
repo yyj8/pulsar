@@ -151,7 +151,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.bookkeeper.stats</groupId>
+      <groupId>com.datastax.oss</groupId>
       <artifactId>prometheus-metrics-provider</artifactId>
     </dependency>
 
@@ -234,7 +234,7 @@
 
     <!-- bookkeeper http server -->
     <dependency>
-      <groupId>org.apache.bookkeeper.http</groupId>
+      <groupId>com.datastax.oss</groupId>
       <artifactId>vertx-http-server</artifactId>
       <version>${bookkeeper.version}</version>
       <exclusions>
