@@ -29,7 +29,7 @@
   </suppress>
   <suppress>
     <notes>pulsar-zookeeper-utils gets mixed with zookeeper.</notes>
-    <gav regex="true">org\.apache\.pulsar:.*</gav>
+    <gav regex="true">com\.datastax\.oss:.*</gav>
     <cpe>cpe:/a:apache:zookeeper</cpe>
   </suppress>
   <suppress>
