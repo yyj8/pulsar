@@ -392,12 +392,12 @@ public class KubernetesRuntimeTest {
             extraDepsEnv = " -Dpulsar.functions.extra.dependencies.dir=" + depsDir;
             classpath = classpath + ":" + depsDir + "/*";
             totalArgs = 40;
-            portArg = 26;
-            metricsPortArg = 28;
+            portArg = 27;
+            metricsPortArg = 29;
         } else {
             extraDepsEnv = "";
-            portArg = 25;
-            metricsPortArg = 27;
+            portArg = 26;
+            metricsPortArg = 28;
             totalArgs = 39;
         }
         if (secretsAttached) {
