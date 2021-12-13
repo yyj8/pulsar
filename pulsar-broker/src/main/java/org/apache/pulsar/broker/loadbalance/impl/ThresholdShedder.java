@@ -95,12 +95,13 @@ public class ThresholdShedder implements LoadSheddingStrategy {
             MutableBoolean atLeastOneBundleSelected = new MutableBoolean(false);
 
             if (localData.getBundles().size() > 1) {
-                loadData.getBundleData().entrySet().stream().map((e) -> {
-                    String bundle = e.getKey();
-                    BundleData bundleData = e.getValue();
-                    TimeAverageMessageData shortTermData = bundleData.getShortTermData();
-                    double throughput = shortTermData.getMsgThroughputIn() + shortTermData.getMsgThroughputOut();
-                    return Pair.of(bundle, throughput);
+                loadData.getBundleDataForLoadShedding().entrySet().stream()
+                    .map((e) -> {
+                        String bundle = e.getKey();
+                        BundleData bundleData = e.getValue();
+                        TimeAverageMessageData shortTermData = bundleData.getShortTermData();
+                        double throughput = shortTermData.getMsgThroughputIn() + shortTermData.getMsgThroughputOut();
+                        return Pair.of(bundle, throughput);
                 }).filter(e ->
                         !recentlyUnloadedBundles.containsKey(e.getLeft())
                 ).filter(e ->

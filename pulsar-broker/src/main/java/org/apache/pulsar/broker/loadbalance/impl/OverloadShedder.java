@@ -96,17 +96,16 @@ public class OverloadShedder implements LoadSheddingStrategy {
             if (localData.getBundles().size() > 1) {
                 // Sort bundles by throughput, then pick the biggest N which combined
                 // make up for at least the minimum throughput to offload
-
-                loadData.getBundleData().entrySet().stream()
-                        .filter(e -> localData.getBundles().contains(e.getKey()))
-                        .map((e) -> {
-                            // Map to throughput value
-                            // Consider short-term byte rate to address system resource burden
-                            String bundle = e.getKey();
-                            BundleData bundleData = e.getValue();
-                            TimeAverageMessageData shortTermData = bundleData.getShortTermData();
-                            double throughput = shortTermData.getMsgThroughputIn() + shortTermData
-                                    .getMsgThroughputOut();
+                loadData.getBundleDataForLoadShedding().entrySet().stream()
+                    .filter(e -> localData.getBundles().contains(e.getKey()))
+                    .map((e) -> {
+                        // Map to throughput value
+                        // Consider short-term byte rate to address system resource burden
+                        String bundle = e.getKey();
+                        BundleData bundleData = e.getValue();
+                        TimeAverageMessageData shortTermData = bundleData.getShortTermData();
+                        double throughput = shortTermData.getMsgThroughputIn() + shortTermData
+                                .getMsgThroughputOut();
                     return Pair.of(bundle, throughput);
                 }).filter(e -> {
                     // Only consider bundles that were not already unloaded recently
