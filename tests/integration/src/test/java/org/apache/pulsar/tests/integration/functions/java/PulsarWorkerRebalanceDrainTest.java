@@ -40,6 +40,7 @@ import org.apache.pulsar.tests.integration.functions.PulsarFunctionsTest;
 import org.apache.pulsar.tests.integration.functions.utils.CommandGenerator.Runtime;
 import org.apache.pulsar.tests.integration.topologies.FunctionRuntimeType;
 import org.apache.pulsar.tests.integration.topologies.PulsarCluster;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -72,6 +73,7 @@ public class PulsarWorkerRebalanceDrainTest extends PulsarFunctionsTest {
     }
 
     @Test(groups = {"java_function", "rebalance_drain", "drain"})
+    @Ignore("Function draining is not available, see https://github.com/apache/pulsar/pull/12178")
     public void testDrainWorkers() throws Exception {
         testDrain();
         log.info("Done with testDrain");
