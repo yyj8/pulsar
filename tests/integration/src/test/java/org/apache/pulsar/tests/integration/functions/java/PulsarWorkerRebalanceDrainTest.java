@@ -72,7 +72,7 @@ public class PulsarWorkerRebalanceDrainTest extends PulsarFunctionsTest {
         log.info("Done with testRebalance");
     }
 
-    @Test(groups = {"java_function", "rebalance_drain", "drain"})
+    @Test(groups = {"java_function", "rebalance_drain", "drain"}, enabled = false)
     @Ignore("Function draining is not available, see https://github.com/apache/pulsar/pull/12178")
     public void testDrainWorkers() throws Exception {
         testDrain();
