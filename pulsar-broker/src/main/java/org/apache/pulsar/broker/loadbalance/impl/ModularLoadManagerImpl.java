@@ -913,7 +913,7 @@ public class ModularLoadManagerImpl implements ModularLoadManager, Consumer<Noti
             final SystemResourceUsage systemResourceUsage = LoadManagerShared.getSystemResourceUsage(brokerHostUsage);
             localData.update(systemResourceUsage, getBundleStats());
             updateLoadBalancingMetrics(systemResourceUsage);
-            if (conf.isExposeBunlesMetricsInPrometheus()) {
+            if (conf.isExposeBundlesMetricsInPrometheus()) {
                 updateLoadBalancingBundlesMetrics(getBundleStats());
             }
         } catch (Exception e) {
