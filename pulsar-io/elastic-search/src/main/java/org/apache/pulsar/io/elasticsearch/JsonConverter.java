@@ -193,9 +193,7 @@ public class JsonConverter {
         logicalTypeConverters.put("uuid", new JsonConverter.LogicalTypeConverter() {
             @Override
             JsonNode toJson(Schema schema, Object value) {
-                checkType(value, "uuid", String.class);
-                String uuidString = (String)value;
-                return jsonNodeFactory.textNode(uuidString);
+                return jsonNodeFactory.textNode(value == null ? null : value.toString());
             }
         });
     }
