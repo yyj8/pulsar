@@ -189,6 +189,8 @@ public class ModularLoadManagerImpl implements ModularLoadManager, Consumer<Noti
     private AtomicReference<List<Metrics>> bundleUnloadMetrics = new AtomicReference<>();
     // record bundle split metrics
     private AtomicReference<List<Metrics>> bundleSplitMetrics = new AtomicReference<>();
+    // record bundle metrics
+    private AtomicReference<List<Metrics>> bundleMetrics = new AtomicReference<>();
 
     private long bundleSplitCount = 0;
     private long unloadBrokerCount = 0;
@@ -938,7 +940,7 @@ public class ModularLoadManagerImpl implements ModularLoadManager, Consumer<Noti
             Map<String, String> dimensions = new HashMap<>();
             dimensions.put("broker", pulsar.getAdvertisedAddress());
             dimensions.put("bundle", bundle);
-            dimensions.put("metric", "loadBalancing");
+            dimensions.put("metric", "bundle");
             Metrics m = Metrics.create(dimensions);
             m.put("brk_bundle_msg_rate_in", stats.msgRateIn);
             m.put("brk_bundle_msg_rate_out", stats.msgRateOut);
@@ -949,7 +951,7 @@ public class ModularLoadManagerImpl implements ModularLoadManager, Consumer<Noti
             m.put("brk_bundle_msg_throughput_out", stats.msgThroughputOut);
             metrics.add(m);
         }
-        this.loadBalancingMetrics.set(metrics);
+        this.bundleMetrics.set(metrics);
     }
 
     /**
@@ -1104,6 +1106,10 @@ public class ModularLoadManagerImpl implements ModularLoadManager, Consumer<Noti
 
         if (this.bundleSplitMetrics.get() != null) {
             metricsCollection.addAll(this.bundleSplitMetrics.get());
+        }
+
+        if (this.bundleMetrics.get() != null) {
+            metricsCollection.addAll(this.bundleMetrics.get());
         }
 
         return metricsCollection;
