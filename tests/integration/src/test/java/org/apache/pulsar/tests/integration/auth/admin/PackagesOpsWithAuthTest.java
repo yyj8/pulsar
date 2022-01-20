@@ -18,6 +18,7 @@
  */
 package org.apache.pulsar.tests.integration.auth.admin;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,6 @@ import org.apache.pulsar.tests.integration.containers.ZKContainer;
 import org.apache.pulsar.tests.integration.topologies.PulsarCluster;
 import org.apache.pulsar.tests.integration.topologies.PulsarClusterSpec;
 import org.apache.pulsar.tests.integration.utils.DockerUtils;
-import org.elasticsearch.common.collect.Set;
 import org.testcontainers.containers.Network;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import org.testng.annotations.AfterClass;
@@ -203,7 +203,7 @@ public class PackagesOpsWithAuthTest extends TestRetrySupport {
 
         // grant package permission to the role
         superUserAdmin.namespaces().grantPermissionOnNamespace("public/default",
-            REGULAR_USER_ROLE, Set.of(AuthAction.packages));
+            REGULAR_USER_ROLE, ImmutableSet.of(AuthAction.packages));
 
         // then do some package operations again, it should success
         List<String> packagesName = clientAdmin.packages().listPackages("function", "public/default");
