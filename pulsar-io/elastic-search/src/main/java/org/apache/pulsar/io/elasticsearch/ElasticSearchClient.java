@@ -48,6 +48,7 @@ import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.functions.api.Record;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.DocWriteResponse;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkProcessor;
@@ -66,11 +67,11 @@ import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
-import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.core.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.xcontent.XContentType;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -89,7 +90,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
-public class ElasticSearchClient {
+public class ElasticSearchClient implements AutoCloseable {
 
     static final String[] malformedErrors = {
             "mapper_parsing_exception",
@@ -344,6 +345,7 @@ public class ElasticSearchClient {
         bulkProcessor.flush();
     }
 
+    @Override
     public void close() {
         try {
             if (bulkProcessor != null) {
@@ -465,6 +467,11 @@ public class ElasticSearchClient {
                         .indices(indexName)
                         .source(new SearchSourceBuilder().query(QueryBuilders.matchAllQuery())),
                 RequestOptions.DEFAULT);
+    }
+
+    @VisibleForTesting
+    protected org.elasticsearch.action.support.master.AcknowledgedResponse delete(String indexName) throws IOException {
+        return client.indices().delete(new DeleteIndexRequest(indexName), RequestOptions.DEFAULT);
     }
 
     private <T> T retry(Callable<T> callable, String source) {
