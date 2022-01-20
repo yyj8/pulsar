@@ -86,4 +86,4 @@ WORKDIR /pulsar
 RUN /pulsar/bin/install-pulsar-client.sh
 
 # Switch to the pulsar user to ensure container defaults to run as a non root user
-USER pulsar
+USER 10000

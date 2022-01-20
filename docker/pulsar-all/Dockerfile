@@ -37,7 +37,7 @@ RUN mkdir /pulsar/connectors /pulsar/offloaders && \
     chmod g=u /pulsar/connectors /pulsar/offloaders
 
 # Return to pulsar (non root) user
-USER pulsar
+USER 10000
 
 COPY --from=pulsar-all /connectors/pulsar-io-elastic-search-*.nar /pulsar/connectors/
 COPY --from=pulsar-all /connectors/pulsar-io-kinesis-*.nar /pulsar/connectors/
