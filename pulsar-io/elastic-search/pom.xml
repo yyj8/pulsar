@@ -28,14 +28,6 @@
   <artifactId>pulsar-io-elastic-search</artifactId>
   <name>Pulsar IO :: ElasticSearch</name>
 
-  <properties>
-    <!--
-     Work-around for "Container exited with code 137" (OOM)
-    -->
-    <testReuseFork>false</testReuseFork>
-    <testForkCount>1</testForkCount>
-  </properties>
-
   <dependencies>
 
     <dependency>
@@ -76,12 +68,6 @@
       <version>${project.version}</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.awaitility</groupId>
-      <artifactId>awaitility</artifactId>
-      <scope>test</scope>
-    </dependency>
-
   	<dependency>
   		<groupId>org.elasticsearch.client</groupId>
   		<artifactId>elasticsearch-rest-high-level-client</artifactId>
@@ -90,11 +76,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>elasticsearch</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>toxiproxy</artifactId>
+      <version>1.15.3</version>
       <scope>test</scope>
     </dependency>
 
