@@ -34,6 +34,8 @@ import org.junit.AfterClass;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.opensearch.client.Node;
+import org.opensearch.client.RestHighLevelClient;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -52,7 +54,7 @@ import static org.testng.Assert.assertNull;
 public class ElasticSearchSinkTests {
 
     public static final String ELASTICSEARCH_IMAGE = Optional.ofNullable(System.getenv("ELASTICSEARCH_IMAGE"))
-            .orElse("docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2-amd64");
+            .orElse("docker.elastic.co/elasticsearch/elasticsearch:7.16.3-amd64");
 
     private static ElasticsearchContainer container;
 
