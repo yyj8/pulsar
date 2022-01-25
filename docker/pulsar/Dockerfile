@@ -46,7 +46,7 @@ RUN chmod -R g=u /pulsar
 ### Create 2nd stage from OpenJDK image
 ### and add Python dependencies (for Pulsar functions)
 
-FROM adoptopenjdk:11-jdk
+FROM eclipse-temurin:11.0.13_8-jdk
 
 # Create the pulsar group and user to make docker container run as a non root user by default
 RUN groupadd -g 10001 pulsar
