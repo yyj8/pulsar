@@ -108,8 +108,6 @@ public class ProxyService implements Closeable {
 
     private final ScheduledExecutorService statsExecutor;
 
-    private static final int numThreads = Runtime.getRuntime().availableProcessors();
-
     static final Gauge activeConnections = Gauge
             .build("pulsar_proxy_active_connections", "Number of connections currently active in the proxy").create()
             .register();
@@ -150,8 +148,10 @@ public class ProxyService implements Closeable {
         } else {
             proxyLogLevel = 0;
         }
-        this.acceptorGroup = EventLoopUtil.newEventLoopGroup(1, false, acceptorThreadFactory);
-        this.workerGroup = EventLoopUtil.newEventLoopGroup(numThreads, false, workersThreadFactory);
+        this.acceptorGroup = EventLoopUtil.newEventLoopGroup(proxyConfig.getNumAcceptorThreads(),
+                false, acceptorThreadFactory);
+        this.workerGroup = EventLoopUtil.newEventLoopGroup(proxyConfig.getNumIOThreads(),
+                false, workersThreadFactory);
         this.authenticationService = authenticationService;
 
         // Initialize the message protocol handlers
@@ -280,7 +280,7 @@ public class ProxyService implements Closeable {
             EventLoopUtil.enableTriggeredMode(bootstrap);
             DefaultThreadFactory defaultThreadFactory = new DefaultThreadFactory("pulsar-ext-" + extensionName);
             EventLoopGroup dedicatedWorkerGroup =
-                    EventLoopUtil.newEventLoopGroup(numThreads, false, defaultThreadFactory);
+                    EventLoopUtil.newEventLoopGroup(proxyConfig.getNumIOThreads(), false, defaultThreadFactory);
             extensionsWorkerGroups.add(dedicatedWorkerGroup);
             bootstrap.channel(EventLoopUtil.getServerSocketChannelClass(dedicatedWorkerGroup));
             bootstrap.group(this.acceptorGroup, dedicatedWorkerGroup);
