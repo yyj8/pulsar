@@ -95,6 +95,7 @@ public class SinkConfigUtilsTest extends PowerMockTestCase {
 
         sinkConfig.setConfigs(configs);
         sinkConfig.setRetainOrdering(false);
+        sinkConfig.setRetainKeyOrdering(false);
         sinkConfig.setAutoAck(true);
         sinkConfig.setTimeoutMs(2000l);
         sinkConfig.setRuntimeFlags("-DKerberos");
