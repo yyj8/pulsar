@@ -753,6 +753,7 @@ public class FunctionConfigUtils {
                 && functionConfig.getProcessingGuarantees() == FunctionConfig.ProcessingGuarantees.EFFECTIVELY_ONCE) {
             throw new IllegalArgumentException("When effectively once processing guarantee is specified, retain Key ordering cannot be set");
         }
+
         if (functionConfig.getRetainKeyOrdering() != null && functionConfig.getRetainKeyOrdering()
                 && functionConfig.getRetainOrdering() != null && functionConfig.getRetainOrdering()) {
             throw new IllegalArgumentException("Only one of retain ordering or retain key ordering can be set");
