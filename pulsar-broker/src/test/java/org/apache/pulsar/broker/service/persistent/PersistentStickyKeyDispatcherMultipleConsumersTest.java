@@ -21,6 +21,7 @@ package org.apache.pulsar.broker.service.persistent;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelPromise;
+import io.netty.channel.EventLoopGroup;
 import org.apache.bookkeeper.mledger.Entry;
 import org.apache.bookkeeper.mledger.Position;
 import org.apache.bookkeeper.mledger.impl.EntryImpl;
@@ -40,6 +41,8 @@ import org.apache.pulsar.common.api.proto.MessageMetadata;
 import org.apache.pulsar.common.protocol.Commands;
 import org.apache.pulsar.common.protocol.Markers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -117,6 +120,13 @@ public class PersistentStickyKeyDispatcherMultipleConsumersTest {
 
         brokerMock = mock(BrokerService.class);
         doReturn(pulsarMock).when(brokerMock).pulsar();
+
+        EventLoopGroup eventLoopGroup = mock(EventLoopGroup.class);
+        doReturn(eventLoopGroup).when(brokerMock).executor();
+        doAnswer(invocation -> {
+            ((Runnable)invocation.getArguments()[0]).run();
+            return null;
+        }).when(eventLoopGroup).execute(any(Runnable.class));
 
         topicMock = mock(PersistentTopic.class);
         doReturn(brokerMock).when(topicMock).getBrokerService();
