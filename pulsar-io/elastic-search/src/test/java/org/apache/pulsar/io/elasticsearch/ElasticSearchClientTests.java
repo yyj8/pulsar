@@ -25,30 +25,28 @@ import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.functions.api.Record;
 import org.apache.pulsar.io.elasticsearch.testcontainers.ElasticToxiproxiContainer;
 import org.awaitility.Awaitility;
-import org.junit.AfterClass;
-import org.mockito.Mockito;
-import org.opensearch.action.delete.DeleteRequest;
-import org.opensearch.action.index.IndexRequest;
 import org.testcontainers.containers.Network;
 
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.junit.Assert.*;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
 
 @Slf4j
-public class ElasticSearchClientTests {
-    public static final String ELASTICSEARCH_IMAGE = Optional.ofNullable(System.getenv("ELASTICSEARCH_IMAGE"))
-            .orElse("docker.elastic.co/elasticsearch/elasticsearch:7.16.3-amd64");
+public class ElasticSearchClientTests extends ElasticSearchTestBase {
     public final static String INDEX = "myindex";
 
     static ElasticsearchContainer container;
@@ -58,7 +56,7 @@ public class ElasticSearchClientTests {
 
     @BeforeClass
     public static final void initBeforeClass() throws IOException {
-        container = new ElasticsearchContainer(ELASTICSEARCH_IMAGE).withNetwork(network);
+        container = createElasticsearchContainer().withNetwork(network);
         container.start();
 
         config = new ElasticSearchConfig();
@@ -68,7 +66,7 @@ public class ElasticSearchClientTests {
         client = new ElasticSearchClient(config);
     }
 
-    @AfterClass
+    @AfterClass(alwaysRun = true)
     public static void closeAfterClass() {
         container.close();
         network.close();
