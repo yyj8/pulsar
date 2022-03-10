@@ -747,14 +747,6 @@ public abstract class AdminResource extends PulsarWebResource {
                 });
     }
 
-    protected void resumeAsyncResponseExceptionally(AsyncResponse asyncResponse, Throwable throwable) {
-        if (throwable instanceof WebApplicationException) {
-            asyncResponse.resume((WebApplicationException) throwable);
-        } else {
-            asyncResponse.resume(new RestException(throwable));
-        }
-    }
-
     @CanIgnoreReturnValue
     public static <T> T checkNotNull(T reference) {
         return com.google.common.base.Preconditions.checkNotNull(reference);
