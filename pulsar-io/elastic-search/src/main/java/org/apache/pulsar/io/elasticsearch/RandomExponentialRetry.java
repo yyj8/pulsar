@@ -58,11 +58,11 @@ public class RandomExponentialRetry {
         return ThreadLocalRandom.current().nextLong(0, waitInMs(attempt, backoffInMs));
     }
 
-    protected <T> T retry(Callable<T> function, int maxAttempts, long initialBackoff, String source) throws Exception {
+    public <T> T retry(Callable<T> function, int maxAttempts, long initialBackoff, String source) throws Exception {
         return retry(function, maxAttempts, initialBackoff, source, new Time());
     }
 
-    protected <T> T retry(Callable<T> function, int maxAttempts, long initialBackoff, String source, Time clock) throws Exception {
+    public <T> T retry(Callable<T> function, int maxAttempts, long initialBackoff, String source, Time clock) throws Exception {
         Exception lastException = null;
         for(int i = 0; i < maxAttempts || maxAttempts == -1; i++) {
             try {
@@ -70,7 +70,8 @@ public class RandomExponentialRetry {
             } catch (Exception e) {
                 lastException = e;
                 long backoff = randomWaitInMs(i, initialBackoff);
-                log.info("Trying source={} attempt {}/{} failed, waiting {}ms", source, i, maxAttempts, backoff);
+                log.info("Executing '{}', attempt {}/{}, next retry in {} ms, caused by: {}", source, i,
+                        maxAttempts, backoff, e.getMessage());
                 clock.sleep(backoff);
             }
         }

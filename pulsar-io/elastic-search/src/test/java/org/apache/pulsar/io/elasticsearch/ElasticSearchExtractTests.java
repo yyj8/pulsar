@@ -90,6 +90,7 @@ public class ElasticSearchExtractTests {
         ElasticSearchSink elasticSearchSink = new ElasticSearchSink();
         elasticSearchSink.open(ImmutableMap.of(
                 "elasticSearchUrl", "http://localhost:9200",
+                "compatibilityMode", "ELASTICSEARCH",
                 "primaryFields","c",
                 "schemaEnable", "true",
                 "keyIgnore", "true"), null);
@@ -101,6 +102,7 @@ public class ElasticSearchExtractTests {
         ElasticSearchSink elasticSearchSink2 = new ElasticSearchSink();
         elasticSearchSink2.open(ImmutableMap.of(
                 "elasticSearchUrl", "http://localhost:9200",
+                "compatibilityMode", "ELASTICSEARCH",
                 "primaryFields","c,d",
                 "schemaEnable", "true",
                 "keyIgnore", "true"), null);

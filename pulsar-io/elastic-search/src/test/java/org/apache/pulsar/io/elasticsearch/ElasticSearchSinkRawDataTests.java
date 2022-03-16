@@ -45,9 +45,13 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
-public class ElasticSearchSinkRawDataTests extends ElasticSearchTestBase {
+public abstract class ElasticSearchSinkRawDataTests extends ElasticSearchTestBase {
 
     private static ElasticsearchContainer container;
+
+    public ElasticSearchSinkRawDataTests(String elasticImageName) {
+        super(elasticImageName);
+    }
 
     @Mock
     protected Record<GenericObject> mockRecord;
@@ -62,8 +66,11 @@ public class ElasticSearchSinkRawDataTests extends ElasticSearchTestBase {
 
     static Schema<byte[]> schema;
 
-    @BeforeClass
-    public static final void initBeforeClass() {
+    @BeforeMethod(alwaysRun = true)
+    public final void initBeforeClass() {
+        if (container != null) {
+            return;
+        }
         container = createElasticsearchContainer();
         schema = Schema.BYTES;
     }

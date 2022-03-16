@@ -29,6 +29,8 @@ import org.apache.pulsar.common.schema.KeyValueEncodingType;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.functions.api.Record;
 import org.apache.pulsar.io.core.SinkContext;
+import org.apache.pulsar.io.elasticsearch.client.elastic.ElasticSearchJavaRestClient;
+import org.apache.pulsar.io.elasticsearch.client.opensearch.OpenSearchHighLevelRestClient;
 import org.apache.pulsar.io.elasticsearch.data.UserProfile;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
@@ -36,7 +38,6 @@ import org.mockito.stubbing.Answer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -49,9 +50,13 @@ import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
-public class ElasticSearchSinkTests extends ElasticSearchTestBase {
+public abstract class ElasticSearchSinkTests extends ElasticSearchTestBase {
 
     private static ElasticsearchContainer container;
+
+    public ElasticSearchSinkTests(String elasticImageName) {
+        super(elasticImageName);
+    }
 
     @Mock
     protected Record<GenericObject> mockRecord;
@@ -66,8 +71,8 @@ public class ElasticSearchSinkTests extends ElasticSearchTestBase {
     static GenericSchema<GenericRecord> genericSchema;
     static GenericRecord userProfile;
 
-    @BeforeClass
-    public static final void initBeforeClass() {
+    @BeforeMethod(alwaysRun = true)
+    public final void initBeforeClass() {
         container = createElasticsearchContainer();
 
         valueSchema = Schema.JSON(UserProfile.class);
@@ -171,8 +176,17 @@ public class ElasticSearchSinkTests extends ElasticSearchTestBase {
         sink.open(map, mockSinkContext);
         send(1);
         verify(mockRecord, times(1)).ack();
-        assertEquals(sink.getElasticsearchClient().totalHits(index), 1L);
-        assertEquals(sink.getElasticsearchClient().search(index).getHits().getHits()[0].getId(), "bob");
+        assertEquals(sink.getElasticsearchClient().getRestClient().totalHits(index), 1L);
+
+        if (elasticImageName.equals(ELASTICSEARCH_8)) {
+            final ElasticSearchJavaRestClient restClient = (ElasticSearchJavaRestClient)
+                    sink.getElasticsearchClient().getRestClient();
+            assertEquals(restClient.search(index).hits().hits().get(0).id(), "bob");
+        } else {
+            final OpenSearchHighLevelRestClient restClient = (OpenSearchHighLevelRestClient)
+                    sink.getElasticsearchClient().getRestClient();
+            assertEquals(restClient.search(index).getHits().getHits()[0].getId(), "bob");
+        }
     }
 
     @Test(enabled = true)
@@ -184,8 +198,16 @@ public class ElasticSearchSinkTests extends ElasticSearchTestBase {
         sink.open(map, mockSinkContext);
         send(1);
         verify(mockRecord, times(1)).ack();
-        assertEquals(sink.getElasticsearchClient().totalHits(index), 1L);
-        assertEquals(sink.getElasticsearchClient().search(index).getHits().getHits()[0].getId(), "[\"bob\",\"boby\"]");
+        assertEquals(sink.getElasticsearchClient().getRestClient().totalHits(index), 1L);
+        if (elasticImageName.equals(ELASTICSEARCH_8)) {
+            final ElasticSearchJavaRestClient restClient = (ElasticSearchJavaRestClient)
+                    sink.getElasticsearchClient().getRestClient();
+            assertEquals(restClient.search(index).hits().hits().get(0).id(), "[\"bob\",\"boby\"]");
+        } else {
+            final OpenSearchHighLevelRestClient restClient = (OpenSearchHighLevelRestClient)
+                    sink.getElasticsearchClient().getRestClient();
+            assertEquals(restClient.search(index).getHits().getHits()[0].getId(), "[\"bob\",\"boby\"]");
+        }
     }
 
     protected final void send(int numRecords) throws Exception {
@@ -302,9 +324,9 @@ public class ElasticSearchSinkTests extends ElasticSearchTestBase {
                 };
             }
         });
-        assertEquals(sink.getElasticsearchClient().totalHits(index), 1L);
+        assertEquals(sink.getElasticsearchClient().getRestClient().totalHits(index), 1L);
         sink.write(new MockRecordNullValue());
-        assertEquals(sink.getElasticsearchClient().totalHits(index), action.equals(ElasticSearchConfig.NullValueAction.DELETE) ? 0L : 1L);
+        assertEquals(sink.getElasticsearchClient().getRestClient().totalHits(index), action.equals(ElasticSearchConfig.NullValueAction.DELETE) ? 0L : 1L);
         assertNull(sink.getElasticsearchClient().irrecoverableError.get());
     }
 }

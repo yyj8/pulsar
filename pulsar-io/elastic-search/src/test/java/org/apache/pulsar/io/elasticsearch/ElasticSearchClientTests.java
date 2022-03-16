@@ -23,13 +23,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.functions.api.Record;
+import org.apache.pulsar.io.elasticsearch.client.elastic.ElasticSearchJavaRestClient;
+import org.apache.pulsar.io.elasticsearch.client.opensearch.OpenSearchHighLevelRestClient;
 import org.apache.pulsar.io.elasticsearch.testcontainers.ElasticToxiproxiContainer;
 import org.awaitility.Awaitility;
 import org.testcontainers.containers.Network;
 
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -46,7 +48,7 @@ import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
 @Slf4j
-public class ElasticSearchClientTests extends ElasticSearchTestBase {
+public abstract class ElasticSearchClientTests extends ElasticSearchTestBase {
     public final static String INDEX = "myindex";
 
     static ElasticsearchContainer container;
@@ -54,8 +56,15 @@ public class ElasticSearchClientTests extends ElasticSearchTestBase {
     static ElasticSearchClient client;
     static Network network = Network.newNetwork();
 
-    @BeforeClass
-    public static final void initBeforeClass() throws IOException {
+    public ElasticSearchClientTests(String elasticImageName) {
+        super(elasticImageName);
+    }
+
+    @BeforeMethod(alwaysRun = true)
+    public void initBeforeClass() throws IOException {
+        if (container != null) {
+            return;
+        }
         container = createElasticsearchContainer().withNetwork(network);
         container.start();
 
@@ -64,6 +73,12 @@ public class ElasticSearchClientTests extends ElasticSearchTestBase {
         config.setIndexName(INDEX);
 
         client = new ElasticSearchClient(config);
+        if (elasticImageName.equals(OPENSEARCH) || elasticImageName.equals(ELASTICSEARCH_7)) {
+            assertTrue(client.getRestClient() instanceof OpenSearchHighLevelRestClient);
+        } else {
+            assertTrue(client.getRestClient() instanceof ElasticSearchJavaRestClient);
+        }
+
     }
 
     @AfterClass(alwaysRun = true)
@@ -99,12 +114,12 @@ public class ElasticSearchClientTests extends ElasticSearchTestBase {
         client.indexDocument(mockRecord, Pair.of("1","{ \"a\":1}"));
         assertEquals(mockRecord.acked, 1);
         assertEquals(mockRecord.failed, 0);
-        assertEquals(client.totalHits(INDEX), 1);
+        assertEquals(client.getRestClient().totalHits(INDEX), 1);
 
         client.deleteDocument(mockRecord, "1");
         assertEquals(mockRecord.acked, 2);
         assertEquals(mockRecord.failed, 0);
-        assertEquals(client.totalHits(INDEX), 0);
+        assertEquals(client.getRestClient().totalHits(INDEX), 0);
     }
 
     @Test
@@ -133,7 +148,7 @@ public class ElasticSearchClientTests extends ElasticSearchTestBase {
                     Awaitility.await().atMost(20, TimeUnit.SECONDS).untilAsserted(() -> {
                         assertEquals(mockRecord.acked, 1);
                         assertEquals(mockRecord.failed, 0);
-                        assertEquals(client.totalHits(index), 1);
+                        assertEquals(client.getRestClient().totalHits(index), 1);
                     });
 
                     toxiproxy.getProxy().toxics().latency("elasticpause", ToxicDirection.DOWNSTREAM, 15000);
@@ -143,10 +158,10 @@ public class ElasticSearchClientTests extends ElasticSearchTestBase {
                     Awaitility.await().atMost(20, TimeUnit.SECONDS).untilAsserted(() -> {
                         assertEquals(mockRecord.acked, 2);
                         assertEquals(mockRecord.failed, 0);
-                        assertEquals(client.totalHits(index), 0);
+                        assertEquals(client.getRestClient().totalHits(index), 0);
                     });
                 } finally {
-                    client.delete(index);
+                    client.getRestClient().deleteIndex(index);
                 }
             }
         }
@@ -238,7 +253,7 @@ public class ElasticSearchClientTests extends ElasticSearchTestBase {
                     client.bulkIndex(mockRecord, Pair.of("2", "{\"a\":2}"));
                     assertEquals(mockRecord.acked, 2);
                     assertEquals(mockRecord.failed, 0);
-                    assertEquals(client.totalHits(index), 2);
+                    assertEquals(client.getRestClient().totalHits(index), 2);
 
                     log.info("starting the toxic");
                     toxiproxy.getProxy().setConnectionCut(false);
@@ -248,14 +263,14 @@ public class ElasticSearchClientTests extends ElasticSearchTestBase {
                     client.bulkIndex(mockRecord, Pair.of("3", "{\"a\":3}"));
                     assertEquals(mockRecord.acked, 2);
                     assertEquals(mockRecord.failed, 0);
-                    assertEquals(client.totalHits(index), 2);
+                    assertEquals(client.getRestClient().totalHits(index), 2);
 
                     client.flush();
                     assertEquals(mockRecord.acked, 3);
                     assertEquals(mockRecord.failed, 0);
-                    assertEquals(client.totalHits(index), 3);
+                    assertEquals(client.getRestClient().totalHits(index), 3);
                 } finally {
-                    client.delete(index);
+                    client.getRestClient().deleteIndex(index);
                 }
             }
         }
@@ -288,13 +303,13 @@ public class ElasticSearchClientTests extends ElasticSearchTestBase {
                     Awaitility.await().untilAsserted(() -> {
                         assertThat("acked record", mockRecord.acked, greaterThanOrEqualTo(4));
                         assertEquals(mockRecord.failed, 0);
-                        assertThat("totalHits", client.totalHits(index), greaterThanOrEqualTo(4L));
+                        assertThat("totalHits", client.getRestClient().totalHits(index), greaterThanOrEqualTo(4L));
                     });
                     client.flush();
                     Awaitility.await().untilAsserted(() -> {
                         assertEquals(mockRecord.failed, 0);
                         assertEquals(mockRecord.acked, 5);
-                        assertEquals(client.totalHits(index), 5);
+                        assertEquals(client.getRestClient().totalHits(index), 5);
                     });
 
                     log.info("starting the toxic");
@@ -320,7 +335,7 @@ public class ElasticSearchClientTests extends ElasticSearchTestBase {
                     });
 
                 } finally {
-                    client.delete(index);
+                    client.getRestClient().deleteIndex(index);
                 }
             }
         }
