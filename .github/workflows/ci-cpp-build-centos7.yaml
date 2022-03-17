@@ -21,7 +21,7 @@ name: CI - CPP build on CentOS 7
 on:
   pull_request:
     branches:
-      - master
+      - 2.8.0_ds
     paths:
       - '.github/workflows/**'
       - 'pulsar-client-cpp/**'

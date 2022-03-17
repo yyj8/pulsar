@@ -21,7 +21,7 @@ name: CI - Unit - Brokers - Broker Group 2
 on:
   pull_request:
     branches:
-      - master
+      - 2.8.0_ds
   push:
     branches:
       - branch-*
