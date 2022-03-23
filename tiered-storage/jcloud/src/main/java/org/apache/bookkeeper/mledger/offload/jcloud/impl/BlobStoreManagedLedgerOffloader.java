@@ -509,7 +509,13 @@ public class BlobStoreManagedLedgerOffloader implements LedgerOffloader {
                         DataBlockUtils.VERSION_CHECK,
                         ledgerId, config.getReadBufferSizeInBytes()));
             } catch (Throwable t) {
-                log.error("Failed readOffloaded: ", t);
+                log.error("Failed readOffloaded (ledger {} bucket {} key {} " +
+                                "index {} BlobStoreLocation {} bsKey {} readBlobstore {}: ",
+                                ledgerId, readBucket,
+                                key, indexKey,
+                                config.getBlobStoreLocation(),
+                                bsKey, readBlobstore,
+                                t);
                 promise.completeExceptionally(t);
             }
         });

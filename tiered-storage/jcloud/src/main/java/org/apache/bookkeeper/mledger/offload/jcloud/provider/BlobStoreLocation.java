@@ -23,12 +23,14 @@ import java.util.Map;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * Tiered storage blob storage location metadata.
  */
 @Data
 @EqualsAndHashCode
+@ToString
 public class BlobStoreLocation implements Serializable {
 
     private static final long serialVersionUID = 1L;

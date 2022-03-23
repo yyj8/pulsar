@@ -192,6 +192,12 @@ public class BlobStoreBackedReadHandleImpl implements ReadHandle {
                                   long ledgerId, int readBufferSize)
             throws IOException {
         Blob blob = blobStore.getBlob(bucket, indexKey);
+        if (blob == null) {
+            throw new IOException("BlobStore " + blobStore
+                    + " cannot find index blob " + indexKey
+                    + " in bucket " + bucket
+                    + " for ledger " + ledgerId);
+        }
         versionCheck.check(indexKey, blob);
         OffloadIndexBlockBuilder indexBuilder = OffloadIndexBlockBuilder.create();
         OffloadIndexBlock index;
