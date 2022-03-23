@@ -194,6 +194,10 @@ public class ElasticSearchJavaRestClient extends RestClient {
             log.warn("Elasticsearch bulk processor close error:", e);
         }
         client.shutdown();
+    }
 
+    @VisibleForTesting
+    public ElasticsearchClient getClient() {
+        return client;
     }
 }
