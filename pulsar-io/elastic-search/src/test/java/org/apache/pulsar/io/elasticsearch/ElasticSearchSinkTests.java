@@ -73,7 +73,11 @@ public abstract class ElasticSearchSinkTests extends ElasticSearchTestBase {
 
     @BeforeMethod(alwaysRun = true)
     public final void initBeforeClass() {
+        if (container != null) {
+            return;
+        }
         container = createElasticsearchContainer();
+        container.start();
 
         valueSchema = Schema.JSON(UserProfile.class);
         genericSchema = GenericJsonSchema.of(valueSchema.getSchemaInfo());
@@ -94,8 +98,6 @@ public abstract class ElasticSearchSinkTests extends ElasticSearchTestBase {
     @SuppressWarnings("unchecked")
     @BeforeMethod
     public final void setUp() throws Exception {
-        container.start();
-
         map = new HashMap<String, Object> ();
         map.put("elasticSearchUrl", "http://"+container.getHttpHostAddress());
         map.put("schemaEnable", "true");

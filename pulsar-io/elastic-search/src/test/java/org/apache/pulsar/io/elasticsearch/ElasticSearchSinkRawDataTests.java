@@ -72,6 +72,7 @@ public abstract class ElasticSearchSinkRawDataTests extends ElasticSearchTestBas
             return;
         }
         container = createElasticsearchContainer();
+        container.start();
         schema = Schema.BYTES;
     }
 
@@ -83,8 +84,6 @@ public abstract class ElasticSearchSinkRawDataTests extends ElasticSearchTestBas
     @SuppressWarnings("unchecked")
     @BeforeMethod
     public final void setUp() throws Exception {
-        container.start();
-
         map = new HashMap<String, Object> ();
         map.put("elasticSearchUrl", "http://"+container.getHttpHostAddress());
         map.put("schemaEnable", "false");
