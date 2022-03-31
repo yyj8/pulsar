@@ -647,7 +647,8 @@ public class BlobStoreManagedLedgerOffloader implements LedgerOffloader {
     }
 
     @Override
-    public void scanLedgers(OffloadedLedgerMetadataConsumer consumer, Map<String, String> offloadDriverMetadata) throws ManagedLedgerException {
+    public void scanLedgers(OffloadedLedgerMetadataConsumer consumer, Map<String,
+            String> offloadDriverMetadata) throws ManagedLedgerException {
         BlobStoreLocation bsKey = getBlobStoreLocation(offloadDriverMetadata);
         String endpoint = bsKey.getEndpoint();
         String readBucket = bsKey.getBucket();
@@ -675,7 +676,7 @@ public class BlobStoreManagedLedgerOffloader implements LedgerOffloader {
         }
         PageSet<? extends StorageMetadata> pages = readBlobstore.list(bucketName, options);
         for (StorageMetadata md : pages) {
-            log.info("Found {} ",md);
+            log.info("Found {} ", md);
             String name = md.getName();
             Long size = md.getSize();
             Date lastModified = md.getLastModified();
