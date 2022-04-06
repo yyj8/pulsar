@@ -216,8 +216,11 @@ public abstract class RestClient implements Closeable {
         }
     }
 
+    protected abstract void closeClient();
+
     @Override
     public void close() {
         executorService.shutdown();
+        closeClient();
     }
 }

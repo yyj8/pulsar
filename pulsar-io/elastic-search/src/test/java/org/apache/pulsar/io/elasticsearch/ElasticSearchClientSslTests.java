@@ -18,7 +18,6 @@
  */
 package org.apache.pulsar.io.elasticsearch;
 
-import lombok.SneakyThrows;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.utility.MountableFile;
@@ -72,8 +71,7 @@ public abstract class ElasticSearchClientSslTests extends ElasticSearchTestBase 
                             .setEnabled(true)
                             .setTruststorePath(sslResourceDir + "/truststore.jks")
                             .setTruststorePassword("changeit"));
-            ElasticSearchClient client = new ElasticSearchClient(config);
-            testIndexExists(client);
+            testClientWithConfig(config);
         }
     }
 
@@ -110,8 +108,7 @@ public abstract class ElasticSearchClientSslTests extends ElasticSearchTestBase 
                             .setHostnameVerification(true)
                             .setTruststorePath(sslResourceDir + "/truststore.jks")
                             .setTruststorePassword("changeit"));
-            ElasticSearchClient client = new ElasticSearchClient(config);
-            testIndexExists(client);
+            testClientWithConfig(config);
         }
     }
 
@@ -148,8 +145,7 @@ public abstract class ElasticSearchClientSslTests extends ElasticSearchTestBase 
                             .setTruststorePassword("changeit")
                             .setKeystorePath(sslResourceDir + "/keystore.jks")
                             .setKeystorePassword("changeit"));
-            ElasticSearchClient client = new ElasticSearchClient(config);
-            testIndexExists(client);
+            testClientWithConfig(config);
         }
     }
 
@@ -182,11 +178,15 @@ public abstract class ElasticSearchClientSslTests extends ElasticSearchTestBase 
                     .setSsl(new ElasticSearchSslConfig()
                             .setEnabled(true)
                             .setDisableCertificateValidation(true));
-            ElasticSearchClient client = new ElasticSearchClient(config);
-            testIndexExists(client);
+            testClientWithConfig(config);
         }
     }
 
+    private void testClientWithConfig(ElasticSearchConfig config) throws IOException {
+        try (ElasticSearchClient client = new ElasticSearchClient(config);) {
+            testIndexExists(client);
+        }
+    }
 
     public void testIndexExists(ElasticSearchClient client) throws IOException {
         assertFalse(client.indexExists("mynewindex"));
