@@ -32,6 +32,7 @@ import org.apache.pulsar.broker.service.persistent.PersistentTopic;
 import org.apache.pulsar.common.policies.data.stats.ConsumerStatsImpl;
 import org.apache.pulsar.common.policies.data.stats.NonPersistentTopicStatsImpl;
 import org.apache.pulsar.common.policies.data.stats.ReplicatorStatsImpl;
+import org.apache.pulsar.common.policies.data.stats.SubscriptionStatsImpl;
 import org.apache.pulsar.common.policies.data.stats.TopicStatsImpl;
 import org.apache.pulsar.common.util.SimpleTextOutputStream;
 import org.apache.pulsar.compaction.CompactedTopicContext;
@@ -189,6 +190,7 @@ public class NamespaceStatsAggregator {
                 subsStats.lastConsumedFlowTimestamp = subscriptionStats.lastConsumedFlowTimestamp;
                 subsStats.lastConsumedTimestamp = subscriptionStats.lastConsumedTimestamp;
                 subsStats.lastMarkDeleteAdvancedTimestamp = subscriptionStats.lastMarkDeleteAdvancedTimestamp;
+                subsStats.consumersCount = subscriptionStats.consumers.size();
                 subscriptionStats.consumers.forEach(cStats -> {
                     stats.consumersCount++;
                     subsStats.unackedMessages += cStats.unackedMessages;
@@ -222,6 +224,7 @@ public class NamespaceStatsAggregator {
                 subsStats.lastConsumedFlowTimestamp = subscriptionStats.getLastConsumedFlowTimestamp();
                 subsStats.lastConsumedTimestamp = subscriptionStats.getLastConsumedTimestamp();
                 subsStats.lastMarkDeleteAdvancedTimestamp = subscriptionStats.getLastMarkDeleteAdvancedTimestamp();
+                subsStats.consumersCount = subscriptionStats.getConsumers().size();
                 subsStats.msgDropRate = subscriptionStats.getMsgDropRate();
                 subscriptionStats.getConsumers().forEach(cStats -> {
                     stats.consumersCount++;
